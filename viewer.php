@@ -248,6 +248,7 @@ function loadStep(i) {
     function ready() {
         img.style.display = 'block';
         renderPins();
+        autoShowFirstTip();
     }
 
     // Try loading with absolute URL to avoid relative path issues
@@ -346,6 +347,13 @@ function showTip(e, pin, idx) {
     fetch('api/track_click.php', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({demo_id:demoId,step_index:curStep,pin_index:idx}) }).catch(function(){});
 }
 
+function autoShowFirstTip() {
+    var firstEl = document.querySelector('.pin-marker');
+    if (!firstEl) return;
+    var step = demoData.steps[curStep];
+    if (!step || !step.pins || !step.pins.length) return;
+    showTip({ currentTarget: firstEl }, step.pins[0], 0);
+}
 function hideTip() { document.getElementById('tooltipPopover').style.display = 'none'; }
 function nextStep() { if (curStep < demoData.steps.length - 1) loadStep(curStep + 1); }
 function prevStep() { if (curStep > 0) loadStep(curStep - 1); }

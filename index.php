@@ -23,11 +23,13 @@
 
     <section class="hero">
         <div class="hero-bg"></div>
+        <div class="hero-clover hero-clover-left">🍀</div>
+        <div class="hero-clover hero-clover-right">🍀</div>
         <div class="container">
             <div class="hero-content">
                 <div class="hero-badge">✨ Interactive Demo Builder</div>
                 <h1 class="hero-title">Create <span class="gradient-text">Interactive</span> Product Demos<br>in Minutes</h1>
-                <p class="hero-subtitle">Upload screenshots, add clickable hotspots, and share beautiful interactive walkthroughs with your users. No coding required.</p>
+                <p class="hero-subtitle">🍀 Upload screenshots, add clickable hotspots,<br>and share beautiful interactive walkthroughs with your users.</p>
                 <div class="hero-actions">
                     <a href="dashboard.php" class="btn btn-primary btn-lg">Get Started Free</a>
                     <a href="#features" class="btn btn-ghost btn-lg">Learn More</a>

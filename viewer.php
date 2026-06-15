@@ -7,6 +7,9 @@ $data = $demo['data'];
 $json_data = json_encode($data, JSON_UNESCAPED_UNICODE);
 $title = htmlspecialchars($data['title'] ?? 'Untitled Demo');
 $accent = $data['accent_color'] ?? '#6D5DFB';
+$accent_r = hexdec(substr($accent, 1, 2));
+$accent_g = hexdec(substr($accent, 3, 2));
+$accent_b = hexdec(substr($accent, 5, 2));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -40,9 +43,9 @@ body {
     font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none;
     background: transparent; color: var(--text); transition: all 0.15s ease;
 }
-.btn:hover { background: rgba(109,93,251,0.1); border-color: var(--primary); }
-.btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
-.btn-primary:hover { background: var(--secondary); border-color: var(--secondary); }
+.btn:hover { background: rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.1); border-color: var(--accent); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { filter: brightness(1.15); }
 .btn-ghost:hover { background: rgba(255,255,255,0.05); }
 .btn-sm { padding: 6px 12px; font-size: 12px; }
 .text-muted { color: var(--text-muted); }
@@ -54,7 +57,7 @@ body {
 .viewer-header {
     display: flex; align-items: center; justify-content: space-between; padding: 16px 0; gap: 16px;
 }
-.viewer-header h2 { font-size: 20px; font-weight: 700; }
+.viewer-header h2 { font-size: 20px; font-weight: 700; color: var(--accent); }
 .viewer-controls { display: flex; gap: 8px; }
 
 .viewer-stage {
@@ -86,12 +89,12 @@ body {
 .pin-dot {
     width: 24px; height: 24px; border-radius: 50%;
     background: var(--accent); border: 3px solid #fff;
-    box-shadow: 0 2px 12px rgba(109,93,251,0.5);
+    box-shadow: 0 2px 12px rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.5);
     animation: pinPulse 2s ease-in-out infinite;
 }
 @keyframes pinPulse {
-    0%, 100% { box-shadow: 0 2px 12px rgba(109,93,251,0.5); }
-    50% { box-shadow: 0 2px 20px rgba(109,93,251,0.8); }
+    0%, 100% { box-shadow: 0 2px 12px rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.5); }
+    50% { box-shadow: 0 2px 20px rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.8); }
 }
 
 /* Tooltip */
@@ -125,7 +128,7 @@ body {
     border-top: none; border-left: none;
 }
 .tooltip-title {
-    font-size: 13px; font-weight: 700; color: var(--primary);
+    font-size: 13px; font-weight: 700; color: var(--accent);
     margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;
 }
 .tooltip-card p { font-size: 14px; line-height: 1.5; margin-bottom: 12px; color: var(--text); word-break: break-word; }
@@ -140,7 +143,7 @@ body {
     width: 10px; height: 10px; border-radius: 50%;
     background: rgba(255,255,255,0.15); cursor: pointer; transition: all 0.2s ease;
 }
-.step-dot.active { background: var(--primary); transform: scale(1.3); }
+.step-dot.active { background: var(--accent); transform: scale(1.3); }
 .step-dot:hover { background: rgba(255,255,255,0.3); }
 
 /* Play overlay */
@@ -157,11 +160,11 @@ body {
     background: var(--accent); border: 3px solid rgba(255,255,255,0.25);
     color: #fff; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 0 50px rgba(109,93,251,0.45);
+    box-shadow: 0 0 50px rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.45);
     transition: box-shadow 0.2s ease;
     padding: 0; line-height: 1;
 }
-.play-btn:hover { box-shadow: 0 0 70px rgba(109,93,251,0.7); }
+.play-btn:hover { box-shadow: 0 0 70px rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.7); }
 .play-btn svg { animation: playPulse 2s ease-in-out infinite; }
 @keyframes playPulse {
     0%, 100% { transform: scale(1); }

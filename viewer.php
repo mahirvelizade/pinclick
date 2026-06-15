@@ -212,7 +212,7 @@ body {
 // PinClick Viewer Engine
 var PINCLICK_DATA = <?= $json_data ?>;
 var PINCLICK_ID = <?= $id ?>;
-var curStep = 0, demoData = null, demoId = <?= $id ?>;
+var curStep = 0, demoData = null, demoId = <?= $id ?>, started = false;
 
 function init() {
     demoData = PINCLICK_DATA;
@@ -248,7 +248,7 @@ function loadStep(i) {
     function ready() {
         img.style.display = 'block';
         renderPins();
-        autoShowFirstTip();
+        if (started) autoShowFirstTip();
     }
 
     // Try loading with absolute URL to avoid relative path issues
@@ -359,8 +359,10 @@ function nextStep() { if (curStep < demoData.steps.length - 1) loadStep(curStep 
 function prevStep() { if (curStep > 0) loadStep(curStep - 1); }
 function restartDemo() { hideTip(); loadStep(0); }
 function startDemo() {
+    started = true;
     document.getElementById('viewerOverlay').classList.add('hidden');
     document.getElementById('viewerFooter').style.opacity = '1';
+    autoShowFirstTip();
 }
 function handleTooltipAction() {
     var btn = document.getElementById('tooltipAction');

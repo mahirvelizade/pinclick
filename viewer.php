@@ -186,7 +186,7 @@ body {
                 </div>
             </div>
             <div class="viewer-overlay" id="viewerOverlay" onclick="startDemo()">
-                <button class="play-btn">▶</button>
+                <button class="play-btn"><svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></button>
                 <p class="play-label">Click to explore</p>
             </div>
         </div>

@@ -5,20 +5,27 @@ let demoData = null;
 let demoId = null;
 
 function initViewer(data) {
-    demoData = data;
-    document.getElementById('demoTitle').textContent = data.title || 'Untitled Demo';
+    try {
+        demoData = data;
+        const titleEl = document.getElementById('demoTitle');
+        if (titleEl) titleEl.textContent = data.title || 'Untitled Demo';
 
-    if (!data.steps || data.steps.length === 0) {
-        document.getElementById('viewerStage').innerHTML = '<div class="viewer-canvas" style="padding:80px;text-align:center"><p class="text-muted">No steps in this demo</p></div>';
-        return;
-    }
+        if (!data.steps || data.steps.length === 0) {
+            const stage = document.getElementById('viewerStage');
+            if (stage) stage.innerHTML = '<div class="viewer-canvas" style="padding:80px;text-align:center"><p class="text-muted">No steps in this demo</p></div>';
+            return;
+        }
 
-    renderStepIndicators();
-    loadViewerStep(0);
+        renderStepIndicators();
+        loadViewerStep(0);
 
-    if (window.DEMO_ID) {
-        demoId = window.DEMO_ID;
-        trackView();
+        if (window.DEMO_ID) {
+            demoId = window.DEMO_ID;
+            trackView();
+        }
+    } catch (e) {
+        console.error('PinClick init error:', e);
+        alert('PinClick error: ' + e.message);
     }
 }
 
@@ -69,23 +76,30 @@ function loadViewerStep(index) {
 }
 
 function renderViewerPins() {
-    const container = document.getElementById('pinsContainer');
-    container.innerHTML = '';
-    const step = demoData.steps[currentStepIndex];
-    if (!step || !step.pins) return;
+    try {
+        const container = document.getElementById('pinsContainer');
+        if (!container) return;
+        container.innerHTML = '';
+        const step = demoData.steps[currentStepIndex];
+        console.log('renderViewerPins: step=', step ? 'found' : 'not found', 'pins=', step ? (step.pins ? step.pins.length : 'no pins array') : 'N/A');
+        if (!step || !step.pins) return;
 
-    step.pins.forEach((pin, idx) => {
-        const pinEl = document.createElement('div');
-        pinEl.className = 'pin-marker';
-        pinEl.style.left = pin.x + '%';
-        pinEl.style.top = pin.y + '%';
-        pinEl.innerHTML = '<span class="pin-dot"></span>';
-        pinEl.addEventListener('click', (e) => {
-            e.stopPropagation();
-            showTooltip(e, pin, idx);
+        step.pins.forEach((pin, idx) => {
+            const pinEl = document.createElement('div');
+            pinEl.className = 'pin-marker';
+            pinEl.style.left = pin.x + '%';
+            pinEl.style.top = pin.y + '%';
+            pinEl.innerHTML = '<span class="pin-dot"></span>';
+            pinEl.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showTooltip(e, pin, idx);
+            });
+            container.appendChild(pinEl);
         });
-        container.appendChild(pinEl);
-    });
+        console.log('renderViewerPins: rendered', step.pins.length, 'pins');
+    } catch (e) {
+        console.error('renderViewerPins error:', e);
+    }
 }
 
 function showTooltip(event, pin, idx) {

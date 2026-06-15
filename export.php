@@ -49,7 +49,6 @@ $viewer_html = <<<HTML
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{$data['title']} - Demo</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
@@ -77,9 +76,9 @@ $viewer_html = <<<HTML
                 </div>
             </div>
             <div class="viewer-footer">
-                <button class="btn btn-ghost" onclick="prevStep()" id="prevBtn">← Previous</button>
+                <button class="btn btn-ghost" onclick="prevStep()" id="prevBtn">⬅️ Previous</button>
                 <div class="step-indicators" id="stepIndicators"></div>
-                <button class="btn btn-primary" onclick="nextStep()" id="nextBtn">Next →</button>
+                <button class="btn btn-primary" onclick="nextStep()" id="nextBtn">Next ➡️</button>
             </div>
         </div>
     </div>

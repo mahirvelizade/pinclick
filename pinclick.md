@@ -1,76 +1,54 @@
-# PinClick
+# PinClick Changes
 
-Interactive screenshot demo builder (Storylane-style). Formerly DemoFlow AI.
+## Root Cause: CORB (Cross-Origin Read Blocking)
 
-## Live Site
+The InfinityFree browser check (`aes.js`) was intercepting requests and returning HTML instead of the expected resources. When `assets/viewer.js` was loaded via `<script src="...">`, the browser check returned HTML, which triggered CORB because the MIME type mismatch. This prevented `initViewer()` from ever running, so pins never rendered.
 
-- **URL:** http://pinclick.site.je/
-- **Hosting:** InfinityFree (PHP 8+, MySQL)
-- **Source:** https://github.com/mahirvelizade/pinclick
+## Fixes Applied
 
-## Features
+### 1. viewer.php — Fully Self-Contained
+- Inline all JavaScript (moved from `assets/viewer.js`)
+- Inline all CSS (viewer-specific styles, base variables)
+- Removed `<link href="...">` to Google Fonts
+- Uses system font stack: `-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif`
+- Image loading uses absolute URLs first, falls back to relative
+- `onerror` retry logic for failed image loads
+- No external script/CSS dependencies = no CORB risk
 
-- Upload screenshots (PNG, JPG, WEBP)
-- Click on images to place pins (hotspots) with percentage positioning
-- Drag pins to reposition
-- Edit tooltip text and actions (next / previous / external URL)
-- Step management (add/delete/reorder)
-- Public demo viewer with responsive design
-- iframe embed system
-- ZIP export for self-hosting
-- View and click analytics tracking
-- No login required
+### 2. Removed Google Fonts (All Pages)
+- Removed from `dashboard.php`, `editor.php`, `embed.php`, `upload.php`, `index.php`, `export.php`
+- System font stack in `style.css` replaces Inter
+- Eliminates the only cross-origin request on every page
 
-## Tech Stack
+### 3. Emoji Icons (All Pages)
+- `dashboard.php`: Replaced all SVG icon buttons with emojis:
+  - ✏️ Edit, 👁️ View, 🔗 Embed, 📦 Export, 🗑️ Delete
+  - 👁️ views, 📅 date
+  - 🎯 empty state, 🚀 Get Started, ✨ New Demo
+  - 📊 My Demos header
+- `viewer.php`: 📦 Embed, 🔄 Restart, ⬅️ Previous, Next ➡️, ✅ Finish
+- `export.php`: ⬅️ Previous, Next ➡️
 
-- **Backend:** PHP 8+ (vanilla, no frameworks)
-- **Database:** MySQL with JSON data storage
-- **Frontend:** Vanilla JavaScript, CSS with glassmorphism design
-- **No dependencies, no build step, no Composer**
+### 4. UI/UX Improvements
+- Glass card hover animation: `translateY(-2px)` + glow shadow
+- Pin drop animation: pins bounce in with staggered delay
+- Pulse animation enhanced: pin dots scale to 1.1x on pulse
+- Smoother transitions on all interactive elements
 
-## File Structure
+### 5. Cleanup
+- Deleted `assets/viewer.js` from server (no longer needed)
+- Deleted debug files (`test_debug.php`, `test_raw.php`, `debug.php`)
+- Removed cache-busting `?v=` query params (not needed with inline)
 
-```
-├── .htaccess
-├── config.php                  # DB connection + helpers
-├── database.sql                # MySQL schema
-├── index.php                   # Landing page
-├── dashboard.php               # Demo list
-├── editor.php                  # Demo builder (core)
-├── viewer.php                  # Public demo player
-├── upload.php                  # Image upload page
-├── export.php                  # ZIP export
-├── embed.php                   # iframe embed code
-├── api/
-│   ├── get_demo.php
-│   ├── save_demo.php
-│   ├── save_step.php
-│   ├── upload.php
-│   ├── track_view.php
-│   └── track_click.php
-├── assets/
-│   ├── style.css
-│   └── viewer.js
-└── uploads/
-```
-
-## Database
-
-Tables: `demos`, `analytics_views`, `analytics_clicks`, `uploads`
-
-Demo data stored as JSON in `demos.data` column.
-
-## InfinityFree Setup
-
-- **MySQL Host:** sql100.infinityfree.com
-- **Database:** if0_40570634_pinclick
-- **User:** if0_40570634
-- **Subdomain:** pinclick.site.je
-- **Document root:** `/pinclick.site.je/htdocs/`
-
-## Deployment
-
-1. Upload files to subdomain's `htdocs` directory via FTP
-2. Import `database.sql` via phpMyAdmin
-3. Edit `config.php` with DB credentials
-4. Site is ready
+## Files Changed
+| File | Change |
+|------|--------|
+| `viewer.php` | Complete rewrite — inline JS + CSS, no external deps |
+| `dashboard.php` | Removed Google Fonts, SVGs → emojis, improved copy |
+| `editor.php` | Removed Google Fonts |
+| `embed.php` | Removed Google Fonts |
+| `upload.php` | Removed Google Fonts |
+| `index.php` | Removed Google Fonts |
+| `export.php` | Removed Google Fonts, emoji arrows |
+| `assets/style.css` | System font stack, glass card hover, pin drop animation |
+| `assets/viewer.js` | Removed from server (code inline in viewer.php) |

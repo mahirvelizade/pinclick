@@ -131,6 +131,7 @@ body {
 
 .viewer-footer {
     display: flex; align-items: center; justify-content: space-between; padding: 16px 0; gap: 16px;
+    opacity: 0; transition: opacity 0.4s ease;
 }
 .step-indicators { display: flex; gap: 6px; align-items: center; }
 .step-dot {
@@ -139,6 +140,27 @@ body {
 }
 .step-dot.active { background: var(--primary); transform: scale(1.3); }
 .step-dot:hover { background: rgba(255,255,255,0.3); }
+
+/* Play overlay */
+.viewer-overlay {
+    position: absolute; inset: 0; z-index: 50;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: rgba(11, 16, 32, 0.55);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    cursor: pointer; transition: opacity 0.5s ease;
+}
+.viewer-overlay.hidden { opacity: 0; pointer-events: none; }
+.play-btn {
+    width: 88px; height: 88px; border-radius: 50%;
+    background: var(--primary); border: 3px solid rgba(255,255,255,0.25);
+    color: #fff; font-size: 40px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 50px rgba(109,93,251,0.45);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    padding: 0; line-height: 1;
+}
+.play-btn:hover { transform: scale(1.1); box-shadow: 0 0 70px rgba(109,93,251,0.7); }
+.play-label { margin-top: 20px; color: var(--text-muted); font-size: 14px; letter-spacing: 0.5px; }
 </style>
 </head>
 <body class="viewer-page">
@@ -163,9 +185,13 @@ body {
                     </div>
                 </div>
             </div>
+            <div class="viewer-overlay" id="viewerOverlay" onclick="startDemo()">
+                <button class="play-btn">▶</button>
+                <p class="play-label">Click to explore</p>
+            </div>
         </div>
     </div>
-    <div class="viewer-footer">
+    <div class="viewer-footer" id="viewerFooter">
         <button class="btn btn-ghost" onclick="prevStep()" id="prevBtn">⬅️ Previous</button>
         <div class="step-indicators" id="stepIndicators"></div>
         <button class="btn btn-primary" onclick="nextStep()" id="nextBtn">Next ➡️</button>
@@ -314,6 +340,10 @@ function hideTip() { document.getElementById('tooltipPopover').style.display = '
 function nextStep() { if (curStep < demoData.steps.length - 1) loadStep(curStep + 1); }
 function prevStep() { if (curStep > 0) loadStep(curStep - 1); }
 function restartDemo() { hideTip(); loadStep(0); }
+function startDemo() {
+    document.getElementById('viewerOverlay').classList.add('hidden');
+    document.getElementById('viewerFooter').style.opacity = '1';
+}
 function handleTooltipAction() {
     var btn = document.getElementById('tooltipAction');
     hideTip();

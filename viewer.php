@@ -112,21 +112,7 @@ body {
     min-width: 200px; max-width: 300px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.5); position: relative;
 }
-.tooltip-card::after {
-    content: ''; position: absolute; width: 12px; height: 12px;
-    background: var(--bg-card); border-left: 1px solid var(--border);
-    border-top: 1px solid var(--border); transform: rotate(45deg);
-}
-.tooltip-bottom .tooltip-card::after {
-    top: -7px; left: 50%; margin-left: -6px;
-    border-left: 1px solid var(--border); border-top: 1px solid var(--border);
-    border-bottom: none; border-right: none;
-}
-.tooltip-top .tooltip-card::after {
-    bottom: -7px; left: 50%; margin-left: -6px;
-    border-bottom: 1px solid var(--border); border-right: 1px solid var(--border);
-    border-top: none; border-left: none;
-}
+
 .tooltip-title {
     font-size: 13px; font-weight: 700; color: var(--accent);
     margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;
@@ -302,11 +288,11 @@ function showTip(e, pin, idx) {
     document.getElementById('tooltipText').textContent = pin.text || 'Continue';
     var btn = document.getElementById('tooltipAction');
     if (pin.action === 'url') {
-        btn.textContent = '🔗 Open Link'; btn.dataset.action = 'url'; btn.dataset.url = pin.url || '#';
+        btn.textContent = 'Open Link'; btn.dataset.action = 'url'; btn.dataset.url = pin.url || '#';
     } else if (pin.action === 'previous') {
-        btn.textContent = '⬅️ Previous'; btn.dataset.action = 'previous';
+        btn.textContent = 'Previous'; btn.dataset.action = 'previous';
     } else {
-        btn.textContent = 'Next ➡️'; btn.dataset.action = 'next';
+        btn.textContent = 'Next'; btn.dataset.action = 'next';
     }
 
     var wrap = document.getElementById('imageWrapper');
@@ -318,7 +304,6 @@ function showTip(e, pin, idx) {
     var gap = 16;
     var dirH = pin.x < 50 ? 'right' : 'left';
     var dirV = pin.y < 50 ? 'down' : 'up';
-    var arrow = dirV === 'down' ? 'bottom' : 'top';
     var fx, fy;
 
     if (dirH === 'right') { fx = cx + gap; pop.style.transform = 'none'; }
@@ -336,12 +321,12 @@ function showTip(e, pin, idx) {
     if (por.right > wr.right) { fx = cx - gap; pop.style.transform = 'translateX(-100%)'; }
     else if (por.left < wr.left) { fx = cx + gap; pop.style.transform = 'none'; }
 
-    if (por.bottom > wr.height - 5) { fy = cy - gap; arrow = 'bottom'; }
-    else if (por.top < 5) { fy = cy + gap; arrow = 'top'; }
+    if (por.bottom > wr.height - 5) { fy = cy - gap; }
+    else if (por.top < 5) { fy = cy + gap; }
 
     pop.style.left = Math.round(fx) + 'px';
     pop.style.top = Math.round(fy) + 'px';
-    pop.className = 'tooltip-popover tooltip-' + arrow;
+    pop.className = 'tooltip-popover';
     pop.style.display = 'block';
 
     fetch('api/track_click.php', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({demo_id:demoId,step_index:curStep,pin_index:idx}) }).catch(function(){});

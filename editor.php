@@ -94,6 +94,16 @@ $steps = $data['steps'] ?? [];
 
         <aside class="editor-panel" id="pinEditorPanel">
             <div class="panel-section">
+                <h3>Accent Color</h3>
+                <div class="form-group">
+                    <div class="color-picker-row">
+                        <input type="color" class="color-input" id="accentColor" value="#6D5DFB" onchange="onAccentColorChange()" title="Accent color">
+                        <span class="color-hex" id="colorHex">#6D5DFB</span>
+                        <button class="btn btn-ghost btn-sm" onclick="resetAccentColor()" title="Reset to default">↺</button>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-section">
                 <h3>Pin Editor</h3>
                 <div id="pinEditorContent">
                     <p class="text-muted">Click on the image to create a pin</p>
@@ -134,6 +144,40 @@ $steps = $data['steps'] ?? [];
         document.getElementById('demoTitle').addEventListener('change', function() {
             demoData.title = this.value;
         });
+        initAccentColor();
+    }
+
+    function initAccentColor() {
+        var color = demoData.accent_color || '#6D5DFB';
+        document.getElementById('accentColor').value = color;
+        document.getElementById('colorHex').textContent = color;
+        applyAccentColor(color);
+    }
+
+    function onAccentColorChange() {
+        var color = document.getElementById('accentColor').value;
+        demoData.accent_color = color;
+        document.getElementById('colorHex').textContent = color;
+        applyAccentColor(color);
+        saveDemo();
+    }
+
+    function resetAccentColor() {
+        demoData.accent_color = '#6D5DFB';
+        document.getElementById('accentColor').value = '#6D5DFB';
+        document.getElementById('colorHex').textContent = '#6D5DFB';
+        applyAccentColor('#6D5DFB');
+        saveDemo();
+    }
+
+    function applyAccentColor(color) {
+        var r = parseInt(color.slice(1,3), 16);
+        var g = parseInt(color.slice(3,5), 16);
+        var b = parseInt(color.slice(5,7), 16);
+        document.documentElement.style.setProperty('--accent-color', color);
+        document.documentElement.style.setProperty('--accent-shadow', 'rgba(' + r + ',' + g + ',' + b + ',0.5)');
+        document.documentElement.style.setProperty('--accent-glow', 'rgba(' + r + ',' + g + ',' + b + ',0.9)');
+        renderPins();
     }
 
     function loadStep(index) {
@@ -500,7 +544,8 @@ $steps = $data['steps'] ?? [];
                 body: JSON.stringify({
                     id: DEMO_ID,
                     title: document.getElementById('demoTitle').value,
-                    steps: demoData.steps
+                    steps: demoData.steps,
+                    accent_color: demoData.accent_color
                 })
             });
             const data = await res.json();
@@ -535,7 +580,8 @@ $steps = $data['steps'] ?? [];
                     id: DEMO_ID,
                     title: document.getElementById('demoTitle').value,
                     steps: demoData.steps,
-                    status: 'published'
+                    status: 'published',
+                    accent_color: demoData.accent_color
                 })
             });
             const data = await res.json();

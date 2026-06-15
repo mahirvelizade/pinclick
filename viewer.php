@@ -6,6 +6,7 @@ if (!$demo) { http_response_code(404); die('Demo not found'); }
 $data = $demo['data'];
 $json_data = json_encode($data, JSON_UNESCAPED_UNICODE);
 $title = htmlspecialchars($data['title'] ?? 'Untitled Demo');
+$accent = $data['accent_color'] ?? '#6D5DFB';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -26,6 +27,7 @@ $title = htmlspecialchars($data['title'] ?? 'Untitled Demo');
     --text-dim: #475569;
     --radius: 8px;
     --radius-lg: 12px;
+    --accent: <?= $accent ?>;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -83,7 +85,7 @@ body {
 .pin-marker:hover { transform: translate(-50%, -50%) scale(1.15); z-index: 11; }
 .pin-dot {
     width: 24px; height: 24px; border-radius: 50%;
-    background: var(--primary); border: 3px solid #fff;
+    background: var(--accent); border: 3px solid #fff;
     box-shadow: 0 2px 12px rgba(109,93,251,0.5);
     animation: pinPulse 2s ease-in-out infinite;
 }
@@ -152,7 +154,7 @@ body {
 .viewer-overlay.hidden { opacity: 0; pointer-events: none; }
 .play-btn {
     width: 88px; height: 88px; border-radius: 50%;
-    background: var(--primary); border: 3px solid rgba(255,255,255,0.25);
+    background: var(--accent); border: 3px solid rgba(255,255,255,0.25);
     color: #fff; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     box-shadow: 0 0 50px rgba(109,93,251,0.45);
@@ -191,7 +193,7 @@ body {
                 </div>
             </div>
             <div class="viewer-overlay" id="viewerOverlay" onclick="startDemo()">
-                <button class="play-btn"><svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></button>
+                <button class="play-btn"><svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></button>
                 <p class="play-label">Click to explore</p>
             </div>
         </div>

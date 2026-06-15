@@ -659,15 +659,15 @@ textarea.form-input { resize: vertical; min-height: 80px; }
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    background: var(--primary);
+    background: var(--accent-color, var(--primary));
     border: 3px solid #fff;
-    box-shadow: 0 2px 12px rgba(109, 93, 251, 0.5);
+    box-shadow: 0 2px 12px var(--accent-shadow, rgba(109, 93, 251, 0.5));
     animation: pinPulse 2s ease-in-out infinite;
 }
 
 .pin-marker.selected .pin-dot {
-    background: var(--secondary);
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+    background: var(--accent-color, var(--secondary));
+    box-shadow: 0 0 20px var(--accent-glow, rgba(139, 92, 246, 0.6));
     animation: none;
 }
 
@@ -680,8 +680,8 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 }
 
 @keyframes pinPulse {
-    0%, 100% { box-shadow: 0 2px 12px rgba(109,93,251,0.5); transform: scale(1); }
-    50% { box-shadow: 0 2px 25px rgba(109,93,251,0.9); transform: scale(1.1); }
+    0%, 100% { box-shadow: 0 2px 12px var(--accent-shadow, rgba(109,93,251,0.5)); transform: scale(1); }
+    50% { box-shadow: 0 2px 25px var(--accent-glow, rgba(109,93,251,0.9)); transform: scale(1.1); }
 }
 
 @keyframes pinDrop {
@@ -719,6 +719,12 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .pin-actions { display: flex; gap: 8px; margin-top: 16px; }
 
 .current-image-info { margin-bottom: 8px; font-size: 13px; word-break: break-all; }
+
+.color-picker-row { display: flex; align-items: center; gap: 10px; }
+.color-input { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--glass-border); cursor: pointer; padding: 0; background: none; }
+.color-input::-webkit-color-swatch-wrapper { padding: 0; }
+.color-input::-webkit-color-swatch { border: none; border-radius: 50%; }
+.color-hex { font-size: 13px; font-family: monospace; color: var(--text-muted); flex: 1; }
 
 /* Viewer */
 .viewer-container {

@@ -21,6 +21,9 @@ if (!$demo) {
 $data = $input['data'] ?? $demo['data'];
 $data['title'] = $input['title'] ?? $demo['title'];
 $data['steps'] = $input['steps'] ?? $demo['data']['steps'] ?? [];
+if (isset($input['accent_color'])) {
+    $data['accent_color'] = $input['accent_color'];
+}
 
 $status = $input['status'] ?? $demo['status'];
 

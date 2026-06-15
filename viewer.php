@@ -39,6 +39,7 @@ $data = $demo['data'];
                     <div class="tooltip-popover" id="tooltipPopover" style="display:none">
                         <div class="tooltip-arrow" id="tooltipArrow"></div>
                         <div class="tooltip-card" id="tooltipCard">
+                            <h4 class="tooltip-title" id="tooltipTitle"></h4>
                             <p id="tooltipText"></p>
                             <button class="btn btn-primary btn-sm" id="tooltipAction" onclick="handleTooltipAction()"></button>
                         </div>

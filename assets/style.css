@@ -808,11 +808,21 @@ textarea.form-input { resize: vertical; min-height: 80px; }
     border-left: none;
 }
 
+.tooltip-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
 .tooltip-card p {
     font-size: 14px;
     line-height: 1.5;
     margin-bottom: 12px;
     color: var(--text);
+    word-break: break-word;
 }
 
 .tooltip-card .btn {

@@ -44,11 +44,15 @@ function loadViewerStep(index) {
 
     hideTooltip();
 
-    img.onload = function() {
-        renderViewerPins();
-    };
+    function showPins() {
+        setTimeout(renderViewerPins, 50);
+    }
+
+    img.onload = showPins;
     if (img.complete) {
-        renderViewerPins();
+        showPins();
+    } else {
+        img.addEventListener('load', showPins, { once: true });
     }
 
     document.getElementById('prevBtn').disabled = index === 0;
@@ -89,6 +93,13 @@ function showTooltip(event, pin, idx) {
     const text = document.getElementById('tooltipText');
     const actionBtn = document.getElementById('tooltipAction');
 
+    const titleEl = document.getElementById('tooltipTitle');
+    if (pin.title) {
+        titleEl.textContent = pin.title;
+        titleEl.style.display = 'block';
+    } else {
+        titleEl.style.display = 'none';
+    }
     text.textContent = pin.text || 'Continue';
 
     if (pin.action === 'url') {

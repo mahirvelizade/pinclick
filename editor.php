@@ -235,6 +235,10 @@ $steps = $data['steps'] ?? [];
 
         content.innerHTML = `
             <div class="form-group">
+                <label>Title</label>
+                <input type="text" class="form-input" id="pinTitle" value="${escapeHtml(pin.title || '')}" placeholder="Pin title">
+            </div>
+            <div class="form-group">
                 <label>Tooltip Text</label>
                 <textarea class="form-input pin-textarea" id="pinText" rows="3">${escapeHtml(pin.text || '')}</textarea>
             </div>
@@ -275,6 +279,7 @@ $steps = $data['steps'] ?? [];
         if (!step || !step.pins || !step.pins[selectedPin]) return;
 
         const pin = step.pins[selectedPin];
+        pin.title = document.getElementById('pinTitle').value;
         pin.text = document.getElementById('pinText').value;
         pin.action = document.getElementById('pinAction').value;
         if (pin.action === 'url') {
@@ -379,6 +384,7 @@ $steps = $data['steps'] ?? [];
         const newPin = {
             x: Math.max(0, Math.min(100, x)),
             y: Math.max(0, Math.min(100, y)),
+            title: 'Step ' + (step.pins.length + 1),
             text: 'Click here',
             action: 'next'
         };

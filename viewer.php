@@ -278,20 +278,29 @@ function showTip(e, pin, idx) {
     var cx = pr.left - wr.left + pr.width / 2;
     var cy = pr.top - wr.top + pr.height / 2;
 
+    var gap = 16;
+    var dirH = pin.x < 50 ? 'right' : 'left';
+    var dirV = pin.y < 50 ? 'down' : 'up';
+    var arrow = dirV === 'down' ? 'bottom' : 'top';
+    var fx, fy;
+
+    if (dirH === 'right') { fx = cx + gap; pop.style.transform = 'none'; }
+    else { fx = cx - gap; pop.style.transform = 'translateX(-100%)'; }
+
+    if (dirV === 'down') { fy = cy + gap; }
+    else { fy = cy - gap; }
+
+    pop.style.left = Math.round(fx) + 'px';
+    pop.style.top = Math.round(fy) + 'px';
     pop.style.display = 'block';
-    pop.style.left = Math.round(cx) + 'px';
-    pop.style.top = Math.round(cy - 16) + 'px';
 
     var por = pop.getBoundingClientRect();
-    var fx = cx, fy = cy - 16, arrow = 'bottom';
 
-    if (por.top < wr.top && wr.bottom - cy > 200) { fy = cy + 16; arrow = 'top'; }
-    if (por.right > wr.right) { fx = wr.width - 10; pop.style.transform = 'translateX(-100%)'; }
-    else if (por.left < wr.left) { fx = 10; pop.style.transform = 'none'; }
-    else { pop.style.transform = 'translateX(-50%)'; }
+    if (por.right > wr.right) { fx = cx - gap; pop.style.transform = 'translateX(-100%)'; }
+    else if (por.left < wr.left) { fx = cx + gap; pop.style.transform = 'none'; }
 
-    if (fy < 10) fy = 10;
-    if (fy + por.height > wr.height - 10) { fy = cy + 16; arrow = 'top'; }
+    if (por.bottom > wr.height - 5) { fy = cy - gap; arrow = 'bottom'; }
+    else if (por.top < 5) { fy = cy + gap; arrow = 'top'; }
 
     pop.style.left = Math.round(fx) + 'px';
     pop.style.top = Math.round(fy) + 'px';

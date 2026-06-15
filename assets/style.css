@@ -406,6 +406,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .meta-item .emoji { font-size: 14px; }
 
 .demo-card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.demo-card-actions .btn { font-size: 18px; line-height: 1; padding: 4px 8px; }
 
 .empty-state { text-align: center; padding: 64px 32px; }
 .empty-icon { margin-bottom: 16px; }

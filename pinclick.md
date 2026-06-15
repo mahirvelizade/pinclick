@@ -1,6 +1,6 @@
-# DemoFlow AI
+# PinClick
 
-Interactive screenshot demo builder (Storylane-style).
+Interactive screenshot demo builder (Storylane-style). Formerly DemoFlow AI.
 
 ## Live Site
 

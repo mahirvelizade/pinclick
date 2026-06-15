@@ -1,4 +1,4 @@
-/* DemoFlow AI - Viewer Engine */
+/* PinClick - Viewer Engine */
 
 let currentStepIndex = 0;
 let demoData = null;

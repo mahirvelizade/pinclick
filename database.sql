@@ -1,4 +1,4 @@
--- DemoFlow AI Database Schema
+-- PinClick Database Schema
 -- Import this file via phpMyAdmin or MySQL CLI
 
 CREATE TABLE IF NOT EXISTS `demos` (

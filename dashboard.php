@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - DemoFlow AI</title>
+    <title>Dashboard - PinClick</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/style.css">
 </head>
@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         <div class="nav-inner">
             <a href="index.php" class="nav-brand">
                 <span class="brand-icon">◆</span>
-                <span>DemoFlow AI</span>
+                <span>PinClick</span>
             </a>
             <div class="nav-links">
                 <a href="dashboard.php" class="nav-link active">Dashboard</a>
@@ -84,11 +84,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         </span>
                     </div>
                     <div class="demo-card-actions">
-                        <a href="editor.php?id=<?= $demo['id'] ?>" class="btn btn-primary btn-sm">Edit</a>
-                        <a href="viewer.php?id=<?= $demo['id'] ?>" target="_blank" class="btn btn-ghost btn-sm">View</a>
-                        <a href="embed.php?id=<?= $demo['id'] ?>" class="btn btn-ghost btn-sm">Embed</a>
-                        <a href="export.php?id=<?= $demo['id'] ?>" class="btn btn-ghost btn-sm">Export</a>
-                        <button class="btn btn-danger btn-sm" onclick="deleteDemo(<?= $demo['id'] ?>)">Delete</button>
+                        <a href="editor.php?id=<?= $demo['id'] ?>" class="btn btn-primary btn-sm" title="Edit"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></a>
+                        <a href="viewer.php?id=<?= $demo['id'] ?>" target="_blank" class="btn btn-ghost btn-sm" title="View"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a>
+                        <a href="embed.php?id=<?= $demo['id'] ?>" class="btn btn-ghost btn-sm" title="Embed"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></a>
+                        <a href="export.php?id=<?= $demo['id'] ?>" class="btn btn-ghost btn-sm" title="Export"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a>
+                        <button class="btn btn-danger btn-sm" onclick="deleteDemo(<?= $demo['id'] ?>)" title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></a>
                     </div>
                 </div>
                 <?php endforeach; ?>

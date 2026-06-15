@@ -42,7 +42,7 @@ function loadViewerStep(index) {
     img.src = step.image;
     img.style.display = 'block';
 
-    document.getElementById('tooltipOverlay').style.display = 'none';
+    hideTooltip();
 
     img.onload = function() {
         renderViewerPins();
@@ -76,13 +76,16 @@ function renderViewerPins() {
         pinEl.style.left = pin.x + '%';
         pinEl.style.top = pin.y + '%';
         pinEl.innerHTML = '<span class="pin-dot"></span>';
-        pinEl.addEventListener('click', () => showTooltip(pin, idx));
+        pinEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showTooltip(e, pin, idx);
+        });
         container.appendChild(pinEl);
     });
 }
 
-function showTooltip(pin, idx) {
-    const overlay = document.getElementById('tooltipOverlay');
+function showTooltip(event, pin, idx) {
+    const popover = document.getElementById('tooltipPopover');
     const text = document.getElementById('tooltipText');
     const actionBtn = document.getElementById('tooltipAction');
 
@@ -100,18 +103,69 @@ function showTooltip(pin, idx) {
         actionBtn.dataset.action = 'next';
     }
 
-    overlay.style.display = 'flex';
+    const wrapper = document.getElementById('imageWrapper');
+    const wrapperRect = wrapper.getBoundingClientRect();
+    const pinEl = event.currentTarget;
+    const pinRect = pinEl.getBoundingClientRect();
+
+    const pinCenterX = pinRect.left - wrapperRect.left + pinRect.width / 2;
+    const pinCenterY = pinRect.top - wrapperRect.top + pinRect.height / 2;
+
+    popover.style.display = 'block';
+    popover.style.left = Math.round(pinCenterX) + 'px';
+    popover.style.top = (pinCenterY - 16) + 'px';
+
+    const popoverRect = popover.getBoundingClientRect();
+    const overflowsRight = popoverRect.right > wrapperRect.right;
+    const overflowsLeft = popoverRect.left < wrapperRect.left;
+    const overflowsTop = popoverRect.top < wrapperRect.top;
+    const overflowsBottom = popoverRect.bottom > wrapperRect.bottom;
+
+    let finalX = pinCenterX;
+    let finalY = pinCenterY - 16;
+    let arrowPos = 'bottom';
+
+    if (overflowsTop && wrapperRect.bottom - pinCenterY > 200) {
+        finalY = pinCenterY + 16;
+        arrowPos = 'top';
+    }
+
+    if (overflowsRight) {
+        finalX = wrapperRect.width - 10;
+        popover.style.transform = 'translateX(-100%)';
+    } else if (overflowsLeft) {
+        finalX = 10;
+        popover.style.transform = 'none';
+    } else {
+        popover.style.transform = 'translateX(-50%)';
+    }
+
+    if (finalY < 10) finalY = 10;
+    if (finalY + popoverRect.height > wrapperRect.height - 10) {
+        finalY = pinCenterY + 16;
+        arrowPos = 'top';
+    }
+
+    popover.style.left = Math.round(finalX) + 'px';
+    popover.style.top = Math.round(finalY) + 'px';
+    popover.className = 'tooltip-popover tooltip-' + arrowPos;
+
+    popover.style.display = 'block';
 
     if (demoId) {
         trackClick(idx);
     }
 }
 
+function hideTooltip() {
+    document.getElementById('tooltipPopover').style.display = 'none';
+}
+
 function handleTooltipAction() {
     const btn = document.getElementById('tooltipAction');
     const action = btn.dataset.action;
 
-    document.getElementById('tooltipOverlay').style.display = 'none';
+    hideTooltip();
 
     if (action === 'next') {
         nextStep();
@@ -135,12 +189,12 @@ function prevStep() {
 }
 
 function restartDemo() {
-    document.getElementById('tooltipOverlay').style.display = 'none';
+    hideTooltip();
     loadViewerStep(0);
 }
 
 function goToStep(index) {
-    document.getElementById('tooltipOverlay').style.display = 'none';
+    hideTooltip();
     loadViewerStep(index);
 }
 
@@ -174,12 +228,12 @@ document.addEventListener('keydown', function(e) {
         e.preventDefault();
         prevStep();
     } else if (e.key === 'Escape') {
-        document.getElementById('tooltipOverlay').style.display = 'none';
+        hideTooltip();
     }
 });
 
-document.getElementById('tooltipOverlay').addEventListener('click', function(e) {
-    if (e.target === this) {
-        this.style.display = 'none';
+document.getElementById('imageWrapper').addEventListener('click', function(e) {
+    if (!e.target.closest('.tooltip-popover') && !e.target.closest('.pin-marker')) {
+        hideTooltip();
     }
 });

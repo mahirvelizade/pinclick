@@ -63,13 +63,15 @@ $viewer_html = <<<HTML
             </div>
             <div class="viewer-stage" id="viewerStage">
                 <div class="viewer-canvas" id="viewerCanvas">
-                    <img id="viewerImage" src="" alt="Demo step" class="viewer-image">
-                    <div class="pins-container" id="pinsContainer"></div>
-                </div>
-                <div class="tooltip-overlay" id="tooltipOverlay" style="display:none">
-                    <div class="tooltip-card" id="tooltipCard">
-                        <p id="tooltipText"></p>
-                        <button class="btn btn-primary btn-sm" id="tooltipAction" onclick="handleTooltipAction()"></button>
+                    <div class="viewer-image-wrapper" id="imageWrapper">
+                        <img id="viewerImage" src="" alt="Demo step" class="viewer-image">
+                        <div class="pins-container" id="pinsContainer"></div>
+                        <div class="tooltip-popover" id="tooltipPopover" style="display:none">
+                            <div class="tooltip-card" id="tooltipCard">
+                                <p id="tooltipText"></p>
+                                <button class="btn btn-primary btn-sm" id="tooltipAction" onclick="handleTooltipAction()"></button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

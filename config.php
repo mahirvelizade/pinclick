@@ -5,12 +5,12 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'demoflow');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_HOST', 'sql100.infinityfree.com');
+define('DB_NAME', 'if0_40570634_pinclick');
+define('DB_USER', 'if0_40570634');
+define('DB_PASS', 'lbF5B7s8ueLHx');
 
-define('SITE_URL', 'http://localhost/demoflow');
+define('SITE_URL', 'http://pinclick.site.je');
 define('UPLOAD_DIR', __DIR__ . '/uploads');
 define('UPLOAD_URL', SITE_URL . '/uploads');
 define('MAX_FILE_SIZE', 10 * 1024 * 1024);

@@ -709,11 +709,18 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 }
 
 .viewer-canvas {
-    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 400px;
+    padding: 0;
+}
+
+.viewer-image-wrapper {
+    position: relative;
+    display: inline-block;
+    line-height: 0;
+    max-width: 100%;
 }
 
 .viewer-image {
@@ -724,44 +731,96 @@ textarea.form-input { resize: vertical; min-height: 80px; }
     user-select: none;
 }
 
-/* Tooltip */
-.tooltip-overlay {
+/* Pins */
+.viewer-image-wrapper .pins-container {
     position: absolute;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 50;
-    backdrop-filter: blur(4px);
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* Tooltip Popover */
+.tooltip-popover {
+    position: absolute;
+    z-index: 100;
+    pointer-events: all;
+    animation: tooltipFadeIn 0.15s ease;
+}
+
+@keyframes tooltipFadeIn {
+    from { opacity: 0; transform: scale(0.9) translateY(-4px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.tooltip-popover.tooltip-top .tooltip-card {
+    margin-top: 12px;
+}
+
+.tooltip-popover.tooltip-bottom .tooltip-card {
+    margin-bottom: 12px;
+}
+
+.tooltip-arrow {
+    display: none;
 }
 
 .tooltip-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 24px;
-    max-width: 400px;
-    width: 90%;
-    box-shadow: 0 16px 48px rgba(0,0,0,0.5);
-    animation: tooltipIn 0.2s ease;
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    min-width: 200px;
+    max-width: 300px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    position: relative;
 }
 
-@keyframes tooltipIn {
-    from { opacity: 0; transform: scale(0.95) translateY(8px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
+.tooltip-card::after {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: var(--bg-card);
+    border-left: 1px solid var(--border);
+    border-top: 1px solid var(--border);
+    transform: rotate(45deg);
+}
+
+.tooltip-bottom .tooltip-card::after {
+    top: -7px;
+    left: 50%;
+    margin-left: -6px;
+    border-left: 1px solid var(--border);
+    border-top: 1px solid var(--border);
+    border-bottom: none;
+    border-right: none;
+}
+
+.tooltip-top .tooltip-card::after {
+    bottom: -7px;
+    left: 50%;
+    margin-left: -6px;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    border-top: none;
+    border-left: none;
 }
 
 .tooltip-card p {
-    font-size: 15px;
-    line-height: 1.6;
-    margin-bottom: 16px;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+    color: var(--text);
 }
 
-.tooltip-card .btn { width: 100%; justify-content: center; font-size: 15px; padding: 12px; }
+.tooltip-card .btn {
+    width: 100%;
+    justify-content: center;
+    font-size: 13px;
+    padding: 8px 12px;
+}
 
 /* Viewer Footer */
 .viewer-footer {

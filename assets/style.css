@@ -324,6 +324,22 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 
 .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 
+/* Badge Icon */
+.badge-icon { vertical-align: middle; margin-right: 6px; }
+.badge-icon .scraft { animation: scraftWave 1.5s ease-in-out infinite; transform-origin: center; }
+.badge-icon .heart { animation: heartFloat 2.5s ease-in-out infinite; }
+
+@keyframes scraftWave {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(8deg); }
+    75% { transform: rotate(-8deg); }
+}
+
+@keyframes heartFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
 /* Features */
 .features-section { padding: 80px 0; }
 .section-header { text-align: center; margin-bottom: 48px; }

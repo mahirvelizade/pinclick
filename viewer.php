@@ -164,6 +164,7 @@ body {
     <div class="viewer-header">
         <h2 id="demoTitle"><?= $title ?></h2>
         <div class="viewer-controls">
+            <button class="btn btn-ghost btn-sm" onclick="window.close()">✕ Close</button>
             <a href="embed.php?id=<?= $id ?>" class="btn btn-ghost btn-sm">📦 Embed</a>
             <button class="btn btn-ghost btn-sm" onclick="restartDemo()">🔄 Restart</button>
         </div>
@@ -195,7 +196,6 @@ body {
 </div>
 
 <script>
-// PinClick Viewer Engine
 var PINCLICK_DATA = <?= $json_data ?>;
 var PINCLICK_ID = <?= $id ?>;
 var curStep = 0, demoData = null, demoId = <?= $id ?>, started = false;
@@ -237,14 +237,12 @@ function loadStep(i) {
         if (started) autoShowFirstTip();
     }
 
-    // Try loading with absolute URL to avoid relative path issues
     var url = step.image;
     if (url.indexOf('://') === -1) {
         url = window.location.protocol + '//' + window.location.host + '/' + url.replace(/^\//, '');
     }
     img.onload = ready;
     img.onerror = function() {
-        // Retry once with the original relative URL
         img.onerror = function() { img.alt = 'Failed to load image'; img.style.display = 'block'; };
         img.src = step.image;
     };

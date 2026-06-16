@@ -325,7 +325,12 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 
 /* Badge Icon */
-.badge-icon { vertical-align: middle; margin-right: 6px; }
+.hero-badge-wrap { position: relative; display: inline-block; margin-bottom: 24px; }
+.hero-badge-icon {
+    position: absolute; top: -28px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; justify-content: center;
+}
+.badge-icon { display: block; }
 .badge-icon .scraft { animation: scraftWave 1.5s ease-in-out infinite; transform-origin: center; fill: #000000; }
 .badge-icon .heart { animation: heartFloat 2.5s ease-in-out infinite; fill: #e9214b; }
 

@@ -13,52 +13,6 @@ $site_url = SITE_URL;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Embed - <?= $title ?></title>
     <link rel="stylesheet" href="assets/style.css">
-    <style>
-        .modal-overlay {
-            position: fixed; inset: 0; z-index: 200;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-            display: flex; align-items: center; justify-content: center; padding: 20px;
-            animation: fadeIn 0.2s ease;
-        }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .modal-box {
-            background: var(--bg-card); border: 1px solid var(--glass-border);
-            border-radius: var(--radius-lg); padding: 32px; width: 100%; max-width: 640px;
-            position: relative; animation: slideUp 0.25s ease;
-        }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .modal-close {
-            position: absolute; top: 16px; right: 16px;
-            background: none; border: none; color: var(--text-muted); font-size: 24px;
-            cursor: pointer; padding: 4px 8px; border-radius: var(--radius-sm); transition: var(--transition);
-        }
-        .modal-close:hover { color: var(--text); background: var(--glass-bg); }
-        .modal-box h2 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
-        .modal-box .subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
-        .modal-section { margin-bottom: 20px; }
-        .modal-section h3 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin-bottom: 8px; }
-        .embed-textarea {
-            width: 100%; min-height: 80px; padding: 12px;
-            background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
-            border-radius: var(--radius-sm); color: var(--accent);
-            font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px;
-            resize: none; outline: none;
-        }
-        .embed-textarea:focus { border-color: var(--primary); }
-        .embed-preview-frame {
-            width: 100%; height: 400px; border: none;
-            border-radius: var(--radius); background: var(--bg);
-        }
-        .modal-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-        .modal-actions label { font-size: 13px; color: var(--text-muted); font-weight: 500; }
-        .modal-actions select {
-            padding: 6px 10px; background: rgba(255,255,255,0.05);
-            border: 1px solid var(--glass-border); border-radius: var(--radius-sm);
-            color: var(--text); font-size: 13px; font-family: inherit; outline: none;
-        }
-        .copy-feedback { font-size: 12px; color: var(--success); opacity: 0; transition: opacity 0.2s; }
-        .copy-feedback.show { opacity: 1; }
-    </style>
 </head>
 <body>
     <nav class="navbar">
@@ -75,93 +29,79 @@ $site_url = SITE_URL;
 
     <main class="main-content">
         <div class="container">
-            <div class="glass-card" style="text-align:center;padding:80px 32px;">
-                <h2>Embed "<?= $title ?>"</h2>
-                <p class="text-muted" style="margin-bottom:24px;">Embed this demo on your website or share it</p>
-                <a href="viewer.php?id=<?= $id ?>" class="btn btn-ghost" target="_blank">👁️ Preview Demo</a>
-                <button class="btn btn-primary" onclick="openEmbedModal()">🔗 Get Embed Code</button>
+            <div class="page-header">
+                <div>
+                    <h1>Embed Demo</h1>
+                    <p class="text-muted">Embed "<?= $title ?>" on your website</p>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <h3>Embed Code</h3>
+                <p class="text-muted">Copy and paste this code into your website's HTML:</p>
+                <div class="embed-code-wrapper">
+                    <textarea class="embed-code" id="embedCode" readonly onclick="this.select()"><iframe src="<?= $site_url ?>/viewer.php?id=<?= $id ?>" width="100%" height="600" frameborder="0" style="border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.3)"></iframe></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="copyEmbed()">Copy Code</button>
+            </div>
+
+            <div class="glass-card">
+                <h3>Preview</h3>
+                <div class="embed-preview">
+                    <iframe src="viewer.php?id=<?= $id ?>" width="100%" height="600" frameborder="0" style="border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.3)"></iframe>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <h3>Options</h3>
+                <div class="embed-options">
+                    <div class="option-row">
+                        <label>Width</label>
+                        <select id="embedWidth" onchange="updateEmbed()">
+                            <option value="100%">100% (Responsive)</option>
+                            <option value="1200px">1200px</option>
+                            <option value="900px">900px</option>
+                            <option value="600px">600px</option>
+                        </select>
+                    </div>
+                    <div class="option-row">
+                        <label>Height</label>
+                        <select id="embedHeight" onchange="updateEmbed()">
+                            <option value="600">600px</option>
+                            <option value="500">500px</option>
+                            <option value="400">400px</option>
+                            <option value="700">700px</option>
+                            <option value="800">800px</option>
+                        </select>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
 
-    <div class="modal-overlay" id="embedModal" onclick="if(event.target===this)closeModal()">
-        <div class="modal-box">
-            <button class="modal-close" onclick="closeModal()">✕</button>
-            <h2>Embed Code</h2>
-            <p class="subtitle">Copy and paste this code into your website's HTML</p>
-
-            <div class="modal-section">
-                <h3>HTML Code</h3>
-                <textarea class="embed-textarea" id="embedCode" readonly onclick="this.select()"></textarea>
-                <div style="margin-top:8px;display:flex;align-items:center;gap:12px;">
-                    <button class="btn btn-primary btn-sm" onclick="copyCode()">📋 Copy Code</button>
-                    <span class="copy-feedback" id="copyFeedback">Copied!</span>
-                </div>
-            </div>
-
-            <div class="modal-section">
-                <h3>Options</h3>
-                <div class="modal-actions">
-                    <label>Width</label>
-                    <select id="optWidth" onchange="updateCode()">
-                        <option value="100%">100% (Responsive)</option>
-                        <option value="1200px">1200px</option>
-                        <option value="900px">900px</option>
-                        <option value="600px">600px</option>
-                    </select>
-                    <label>Height</label>
-                    <select id="optHeight" onchange="updateCode()">
-                        <option value="600">600px</option>
-                        <option value="500">500px</option>
-                        <option value="400">400px</option>
-                        <option value="800">800px</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="modal-section">
-                <h3>Preview</h3>
-                <iframe id="previewFrame" class="embed-preview-frame" src="viewer.php?id=<?= $id ?>"></iframe>
-            </div>
-        </div>
-    </div>
-
     <script>
-    var siteUrl = '<?= $site_url ?>';
-    var demoId = <?= $id ?>;
-
-    function openEmbedModal() {
-        document.getElementById('embedModal').style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-        updateCode();
+    function copyEmbed() {
+        const el = document.getElementById('embedCode');
+        el.select();
+        document.execCommand('copy');
+        showToast('Embed code copied!', 'success');
     }
 
-    function closeModal() {
-        document.getElementById('embedModal').style.display = 'none';
-        document.body.style.overflow = '';
-    }
-
-    function updateCode() {
-        var w = document.getElementById('optWidth').value;
-        var h = document.getElementById('optHeight').value;
-        var code = '<iframe src="' + siteUrl + '/viewer.php?id=' + demoId + '" width="' + w + '" height="' + h + '" frameborder="0" style="border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.3)"></iframe>';
+    function updateEmbed() {
+        const w = document.getElementById('embedWidth').value;
+        const h = document.getElementById('embedHeight').value;
+        const code = `<iframe src="<?= $site_url ?>/viewer.php?id=<?= $id ?>" width="${w}" height="${h}" frameborder="0" style="border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.3)"></iframe>`;
         document.getElementById('embedCode').value = code;
     }
 
-    function copyCode() {
-        var el = document.getElementById('embedCode');
-        el.select();
-        document.execCommand('copy');
-        var fb = document.getElementById('copyFeedback');
-        fb.classList.add('show');
-        setTimeout(function() { fb.classList.remove('show'); }, 2000);
+    function showToast(msg, type) {
+        const t = document.createElement('div');
+        t.className = 'toast toast-' + type;
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.classList.add('show'), 10);
+        setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3000);
     }
-
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') closeModal();
-    });
-
-    openEmbedModal();
     </script>
 </body>
 </html>

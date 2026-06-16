@@ -27,7 +27,16 @@
         <div class="hero-clover hero-clover-right">🍀</div>
         <div class="container">
             <div class="hero-content">
-                <div class="hero-badge"><svg class="badge-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 748 448" width="22" height="14"><style>.scraft{fill:#000000}.heart{fill:#e9214b}</style><path class="scraft" d="m156.9 291.4c-30.6 18.6-47.5 57.7-50.5 77 92.5-91.9 122 25 227.5 19 11.2-0.6 94.3-12.6 134.5-19l-13.5-125c-15-0.5-46.5 6.2-66.5 20-40.5 28-165.5-12-231.5 28z"/><path class="heart" d="m542.6 153.2c3.3-6.3 8.3-11.9 15.4-13.8 16.4-4.3 28.6 2.2 34.1 17.8 3.6-8.4 5-12.6 14.1-16.8 14.5-6.8 36.2 2.6 37 19.8 3.2 26.4-27.7 37.8-43 53.3-4.1 4.1-6.2 8.5-8.4 13.8-3-6.9-4.9-10.9-10.7-16-14.6-12.8-45.5-28-40.2-51.9 0.2-2.3 0.9-4 1.7-6.2zm86 5.9c10.2-5.6 4.4-16.3-6-16-10.1 6-5.7 16.6 6 16z"/></svg> Interactive Demo Builder</div>
+                <div class="hero-badge-wrap">
+                    <div class="hero-badge-icon">
+                        <svg class="badge-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 748 448" width="48" height="32">
+                            <style>.scraft{fill:#000000}.heart{fill:#e9214b}</style>
+                            <path class="scraft" d="m156.9 291.4c-30.6 18.6-47.5 57.7-50.5 77 92.5-91.9 122 25 227.5 19 11.2-0.6 94.3-12.6 134.5-19l-13.5-125c-15-0.5-46.5 6.2-66.5 20-40.5 28-165.5-12-231.5 28z"/>
+                            <path class="heart" d="m542.6 153.2c3.3-6.3 8.3-11.9 15.4-13.8 16.4-4.3 28.6 2.2 34.1 17.8 3.6-8.4 5-12.6 14.1-16.8 14.5-6.8 36.2 2.6 37 19.8 3.2 26.4-27.7 37.8-43 53.3-4.1 4.1-6.2 8.5-8.4 13.8-3-6.9-4.9-10.9-10.7-16-14.6-12.8-45.5-28-40.2-51.9 0.2-2.3 0.9-4 1.7-6.2zm86 5.9c10.2-5.6 4.4-16.3-6-16-10.1 6-5.7 16.6 6 16z"/>
+                        </svg>
+                    </div>
+                    <div class="hero-badge">Interactive Demo Builder</div>
+                </div>
                 <h1 class="hero-title">Create <span class="gradient-text">Interactive</span> Product<br>Demos in Minutes</h1>
                 <p class="hero-subtitle"><span class="hero-clover-inline">🍀</span> Upload screenshots, add clickable hotspots,<br>and share beautiful interactive walkthroughs with your users.</p>
                 <div class="hero-actions">

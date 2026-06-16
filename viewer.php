@@ -164,7 +164,7 @@ body {
     <div class="viewer-header">
         <h2 id="demoTitle"><?= $title ?></h2>
         <div class="viewer-controls">
-            <button class="btn btn-ghost btn-sm" onclick="window.close()">✕ Close</button>
+            <button class="btn btn-ghost btn-sm" onclick="closeViewer()">✕ Close</button>
             <a href="embed.php?id=<?= $id ?>" class="btn btn-ghost btn-sm">📦 Embed</a>
             <button class="btn btn-ghost btn-sm" onclick="restartDemo()">🔄 Restart</button>
         </div>
@@ -364,6 +364,16 @@ document.addEventListener('keydown', function(e) {
 document.getElementById('imageWrapper').onclick = function(e) {
     if (!e.target.closest('.tooltip-popover') && !e.target.closest('.pin-marker')) hideTip();
 };
+
+function closeViewer() {
+    if (window.self !== window.top) {
+        parent.postMessage({ action: 'close' }, '*');
+        try { parent.history.back(); } catch(e) {}
+    } else {
+        window.close();
+        if (!window.closed) { window.location.href = 'dashboard.php'; }
+    }
+}
 
 init();
 </script>

@@ -944,6 +944,8 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 /* Media Queries */
 @media (max-width: 768px) {
     .hero-title { font-size: 36px; }
+    .hero-clover { display: none; }
+    .hero-clover-inline { display: none; }
     .demos-grid { grid-template-columns: 1fr; }
     .features-grid { grid-template-columns: 1fr; }
     .steps-showcase { flex-direction: column; }

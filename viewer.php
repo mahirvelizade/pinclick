@@ -157,6 +157,45 @@ body {
     50% { transform: scale(1.18); }
 }
 .play-label { margin-top: 20px; color: var(--text-muted); font-size: 14px; letter-spacing: 0.5px; }
+
+/* Embed Modal */
+.embed-modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    display: none; align-items: center; justify-content: center; padding: 20px;
+}
+.embed-modal-overlay.open { display: flex; }
+.embed-modal-box {
+    background: var(--bg-card); border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg); padding: 28px; width: 100%; max-width: 600px;
+    position: relative; animation: slideUp 0.2s ease;
+}
+@keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.embed-modal-close {
+    position: absolute; top: 12px; right: 12px;
+    background: none; border: none; color: var(--text-muted); font-size: 20px;
+    cursor: pointer; padding: 4px 8px; border-radius: var(--radius); transition: 0.15s;
+}
+.embed-modal-close:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+.embed-modal-box h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.embed-modal-box .sub { color: var(--text-muted); font-size: 13px; margin-bottom: 16px; }
+.embed-textarea {
+    width: 100%; min-height: 70px; padding: 10px 12px;
+    background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
+    border-radius: var(--radius); color: var(--accent);
+    font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px;
+    resize: none; outline: none;
+}
+.embed-textarea:focus { border-color: var(--primary); }
+.embed-modal-row { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+.embed-modal-row label { font-size: 12px; color: var(--text-muted); }
+.embed-modal-row select {
+    padding: 5px 8px; background: rgba(255,255,255,0.05);
+    border: 1px solid var(--glass-border); border-radius: var(--radius);
+    color: var(--text); font-size: 12px; font-family: inherit; outline: none;
+}
+.embed-copy-ok { font-size: 12px; color: var(--success); opacity: 0; transition: 0.2s; }
+.embed-copy-ok.show { opacity: 1; }
 </style>
 </head>
 <body class="viewer-page">
@@ -165,7 +204,7 @@ body {
         <h2 id="demoTitle"><?= $title ?></h2>
         <div class="viewer-controls">
             <button class="btn btn-ghost btn-sm" onclick="closeViewer()">✕ Close</button>
-            <a href="embed.php?id=<?= $id ?>" class="btn btn-ghost btn-sm">📦 Embed</a>
+            <button class="btn btn-ghost btn-sm" onclick="openEmbedModal()">🔗 Embed</button>
             <button class="btn btn-ghost btn-sm" onclick="restartDemo()">🔄 Restart</button>
         </div>
     </div>
@@ -195,7 +234,30 @@ body {
     </div>
 </div>
 
-<script>
+<div class="embed-modal-overlay" id="embedModal" onclick="if(event.target===this)closeEmbedModal()">
+    <div class="embed-modal-box">
+        <button class="embed-modal-close" onclick="closeEmbedModal()">✕</button>
+        <h3>Embed Code</h3>
+        <p class="sub">Copy and paste this code into your website's HTML</p>
+        <textarea class="embed-textarea" id="embedCode" readonly onclick="this.select()"></textarea>
+        <div class="embed-modal-row">
+            <button class="btn btn-primary btn-sm" onclick="copyEmbedCode()">📋 Copy</button>
+            <span class="embed-copy-ok" id="embedCopyOk">Copied!</span>
+            <label>Width</label>
+            <select id="embW" onchange="updateEmbedCode()">
+                <option value="100%">100%</option>
+                <option value="900px">900px</option>
+                <option value="600px">600px</option>
+            </select>
+            <label>Height</label>
+            <select id="embH" onchange="updateEmbedCode()">
+                <option value="600">600</option>
+                <option value="400">400</option>
+                <option value="800">800</option>
+            </select>
+        </div>
+    </div>
+</div>
 var PINCLICK_DATA = <?= $json_data ?>;
 var PINCLICK_ID = <?= $id ?>;
 var curStep = 0, demoData = null, demoId = <?= $id ?>, started = false;
@@ -358,7 +420,10 @@ function handleTooltipAction() {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextStep(); }
     else if (e.key === 'ArrowLeft') { e.preventDefault(); prevStep(); }
-    else if (e.key === 'Escape') hideTip();
+    else if (e.key === 'Escape') {
+        if (document.getElementById('embedModal').classList.contains('open')) closeEmbedModal();
+        else hideTip();
+    }
 });
 
 document.getElementById('imageWrapper').onclick = function(e) {
@@ -373,6 +438,27 @@ function closeViewer() {
         window.close();
         if (!window.closed) { window.location.href = 'dashboard.php'; }
     }
+}
+
+function openEmbedModal() {
+    updateEmbedCode();
+    document.getElementById('embedModal').classList.add('open');
+}
+function closeEmbedModal() {
+    document.getElementById('embedModal').classList.remove('open');
+}
+function updateEmbedCode() {
+    var w = document.getElementById('embW').value;
+    var h = document.getElementById('embH').value;
+    var url = window.location.origin + '/viewer.php?id=' + demoId;
+    document.getElementById('embedCode').value = '<iframe src="' + url + '" width="' + w + '" height="' + h + '" frameborder="0" style="border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.3)"></iframe>';
+}
+function copyEmbedCode() {
+    document.getElementById('embedCode').select();
+    document.execCommand('copy');
+    var fb = document.getElementById('embedCopyOk');
+    fb.classList.add('show');
+    setTimeout(function() { fb.classList.remove('show'); }, 2000);
 }
 
 init();

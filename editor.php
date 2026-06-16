@@ -163,6 +163,8 @@ $steps = $data['steps'] ?? [];
     let isDrawing = false;
     let drawStart = { x: 0, y: 0 };
     let selectedArea = null;
+    let isAreaDragging = false;
+    let dragAreaIndex = null;
 
     function setMode(mode) {
         currentMode = mode;
@@ -573,17 +575,55 @@ $steps = $data['steps'] ?? [];
             el.style.height = area.height + '%';
             el.dataset.index = idx;
 
-            el.addEventListener('click', function(e) {
+            el.addEventListener('mousedown', function(e) {
                 e.stopPropagation();
                 selectedArea = idx;
+                isAreaDragging = true;
+                dragAreaIndex = idx;
                 document.querySelectorAll('.area-box').forEach(function(a) {
                     a.classList.toggle('selected', parseInt(a.dataset.index) === idx);
                 });
                 updateAreaEditor(idx);
+                document.addEventListener('mousemove', onAreaDrag);
+                document.addEventListener('mouseup', endAreaDrag);
+                e.preventDefault();
             });
 
             container.appendChild(el);
         });
+    }
+
+    function onAreaDrag(e) {
+        if (!isAreaDragging) return;
+        var canvas = document.getElementById('editorCanvas');
+        var rect = canvas.getBoundingClientRect();
+        var x = ((e.clientX - rect.left) / rect.width) * 100;
+        var y = ((e.clientY - rect.top) / rect.height) * 100;
+
+        var steps = demoData.steps || [];
+        var step = steps[currentStep];
+        if (!step || !step.areas || !step.areas[dragAreaIndex]) return;
+
+        var area = step.areas[dragAreaIndex];
+        area.x = Math.max(0, Math.min(100 - area.width, x));
+        area.y = Math.max(0, Math.min(100 - area.height, y));
+
+        if (selectedArea === dragAreaIndex) {
+            updateAreaEditor(dragAreaIndex);
+        }
+        renderAreas();
+    }
+
+    function endAreaDrag() {
+        if (isAreaDragging) {
+            isAreaDragging = false;
+            document.removeEventListener('mousemove', onAreaDrag);
+            document.removeEventListener('mouseup', endAreaDrag);
+            if (dragAreaIndex !== null) {
+                saveDemo();
+            }
+            dragAreaIndex = null;
+        }
     }
 
     function updateAreaEditor(index) {

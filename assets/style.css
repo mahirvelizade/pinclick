@@ -326,18 +326,18 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 
 /* Badge Icon */
 .badge-icon { vertical-align: middle; margin-right: 6px; }
-.badge-icon .scraft { animation: scraftWave 1.5s ease-in-out infinite; transform-origin: center; }
-.badge-icon .heart { animation: heartFloat 2.5s ease-in-out infinite; }
+.badge-icon .scraft { animation: scraftWave 1.5s ease-in-out infinite; transform-origin: center; fill: #000000; }
+.badge-icon .heart { animation: heartFloat 2.5s ease-in-out infinite; fill: #e9214b; }
 
 @keyframes scraftWave {
     0%, 100% { transform: rotate(0deg); }
-    25% { transform: rotate(8deg); }
-    75% { transform: rotate(-8deg); }
+    25% { transform: rotate(10deg); }
+    75% { transform: rotate(-10deg); }
 }
 
 @keyframes heartFloat {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-4px); }
+    50% { transform: translateY(-5px); }
 }
 
 /* Features */

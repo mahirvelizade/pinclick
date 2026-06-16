@@ -28,7 +28,7 @@
         <div class="container">
             <div class="hero-content">
                 <div class="hero-badge">✨ Interactive Demo Builder</div>
-                <h1 class="hero-title">Create <span class="gradient-text">Interactive</span> Product Demos<br>in Minutes</h1>
+                <h1 class="hero-title">Create <span class="gradient-text">Interactive</span> Product<br>Demos in Minutes</h1>
                 <p class="hero-subtitle"><span class="hero-clover-inline">🍀</span> Upload screenshots, add clickable hotspots,<br>and share beautiful interactive walkthroughs with your users.</p>
                 <div class="hero-actions">
                     <a href="dashboard.php" class="btn btn-primary btn-lg">Get Started Free</a>

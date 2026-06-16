@@ -50,10 +50,8 @@ body {
 .btn-sm { padding: 6px 12px; font-size: 12px; }
 .text-muted { color: var(--text-muted); }
 
-/* Viewer layout */
 .viewer-page { display: flex; align-items: center; justify-content: center; padding: 20px; }
 .viewer-container { width: 100%; max-width: 1200px; margin: 0 auto; }
-
 .viewer-header {
     display: flex; align-items: center; justify-content: space-between; padding: 16px 0; gap: 16px;
 }
@@ -67,7 +65,6 @@ body {
 .viewer-canvas {
     display: flex; align-items: center; justify-content: center; min-height: 400px; padding: 0;
 }
-
 .viewer-image-wrapper {
     position: relative; display: inline-block; line-height: 0; max-width: 100%;
 }
@@ -75,7 +72,6 @@ body {
     display: block; max-width: 100%; max-height: 70vh; object-fit: contain; user-select: none;
 }
 
-/* Pins */
 .viewer-image-wrapper .pins-container {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
 }
@@ -97,7 +93,6 @@ body {
     50% { box-shadow: 0 2px 20px rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.8); }
 }
 
-/* Tooltip */
 .tooltip-popover {
     position: absolute; z-index: 100; pointer-events: all;
     animation: tooltipFadeIn 0.15s ease;
@@ -112,7 +107,6 @@ body {
     min-width: 200px; max-width: 300px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.5); position: relative;
 }
-
 .tooltip-title {
     font-size: 13px; font-weight: 700; color: var(--accent);
     margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;
@@ -132,7 +126,6 @@ body {
 .step-dot.active { background: var(--accent); transform: scale(1.3); }
 .step-dot:hover { background: rgba(255,255,255,0.3); }
 
-/* Play overlay */
 .viewer-overlay {
     position: absolute; inset: 0; z-index: 50;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -158,7 +151,6 @@ body {
 }
 .play-label { margin-top: 20px; color: var(--text-muted); font-size: 14px; letter-spacing: 0.5px; }
 
-/* Embed Modal */
 .embed-modal-overlay {
     position: fixed; inset: 0; z-index: 200;
     background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
@@ -187,14 +179,14 @@ body {
     resize: none; outline: none;
 }
 .embed-textarea:focus { border-color: var(--primary); }
-.embed-modal-row { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+.embed-modal-row { display: flex; gap: 8px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
 .embed-modal-row label { font-size: 12px; color: var(--text-muted); }
 .embed-modal-row select {
     padding: 5px 8px; background: rgba(255,255,255,0.05);
     border: 1px solid var(--glass-border); border-radius: var(--radius);
     color: var(--text); font-size: 12px; font-family: inherit; outline: none;
 }
-.embed-copy-ok { font-size: 12px; color: var(--success); opacity: 0; transition: 0.2s; }
+.embed-copy-ok { font-size: 12px; color: #10B981; opacity: 0; transition: 0.2s; }
 .embed-copy-ok.show { opacity: 1; }
 </style>
 </head>
@@ -258,8 +250,9 @@ body {
         </div>
     </div>
 </div>
+
+<script>
 var PINCLICK_DATA = <?= $json_data ?>;
-var PINCLICK_ID = <?= $id ?>;
 var curStep = 0, demoData = null, demoId = <?= $id ?>, started = false;
 
 function init() {
@@ -399,16 +392,19 @@ function autoShowFirstTip() {
     if (!step || !step.pins || !step.pins.length) return;
     showTip({ currentTarget: firstEl }, step.pins[0], 0);
 }
+
 function hideTip() { document.getElementById('tooltipPopover').style.display = 'none'; }
 function nextStep() { if (curStep < demoData.steps.length - 1) loadStep(curStep + 1); }
 function prevStep() { if (curStep > 0) loadStep(curStep - 1); }
 function restartDemo() { hideTip(); loadStep(0); }
+
 function startDemo() {
     started = true;
     document.getElementById('viewerOverlay').classList.add('hidden');
     document.getElementById('viewerFooter').style.opacity = '1';
     autoShowFirstTip();
 }
+
 function handleTooltipAction() {
     var btn = document.getElementById('tooltipAction');
     hideTip();
@@ -416,19 +412,6 @@ function handleTooltipAction() {
     else if (btn.dataset.action === 'previous') prevStep();
     else if (btn.dataset.action === 'url') window.open(btn.dataset.url, '_blank');
 }
-
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextStep(); }
-    else if (e.key === 'ArrowLeft') { e.preventDefault(); prevStep(); }
-    else if (e.key === 'Escape') {
-        if (document.getElementById('embedModal').classList.contains('open')) closeEmbedModal();
-        else hideTip();
-    }
-});
-
-document.getElementById('imageWrapper').onclick = function(e) {
-    if (!e.target.closest('.tooltip-popover') && !e.target.closest('.pin-marker')) hideTip();
-};
 
 function closeViewer() {
     if (window.self !== window.top) {
@@ -460,6 +443,19 @@ function copyEmbedCode() {
     fb.classList.add('show');
     setTimeout(function() { fb.classList.remove('show'); }, 2000);
 }
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextStep(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); prevStep(); }
+    else if (e.key === 'Escape') {
+        if (document.getElementById('embedModal').classList.contains('open')) closeEmbedModal();
+        else hideTip();
+    }
+});
+
+document.getElementById('imageWrapper').onclick = function(e) {
+    if (!e.target.closest('.tooltip-popover') && !e.target.closest('.pin-marker')) hideTip();
+};
 
 init();
 </script>

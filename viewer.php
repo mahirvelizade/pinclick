@@ -93,6 +93,42 @@ body {
     50% { box-shadow: 0 2px 20px rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.8); }
 }
 
+/* Spotlight Areas */
+.spotlight-backdrop {
+    position: absolute; inset: 0; pointer-events: none; z-index: 4;
+    opacity: 0;
+    animation: spotlightFadeIn 0.5s ease forwards;
+    animation-delay: 0.3s;
+}
+@keyframes spotlightFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.spotlight-area {
+    position: absolute; pointer-events: none; z-index: 5;
+    border: 2px solid var(--accent);
+    border-radius: 6px;
+    opacity: 0;
+    animation: spotlightAreaIn 0.5s ease forwards;
+    animation-delay: 0.5s;
+    background: rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.06);
+    box-shadow: 0 0 15px rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.15), inset 0 0 15px rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.06);
+}
+.spotlight-area-inner {
+    position: absolute; inset: -2px;
+    border: 2px solid rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.3);
+    border-radius: 8px;
+    animation: spotlightPulse 2.5s ease-in-out infinite;
+}
+@keyframes spotlightAreaIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+@keyframes spotlightPulse {
+    0%, 100% { box-shadow: 0 0 10px rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.2), inset 0 0 10px rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.05); }
+    50% { box-shadow: 0 0 25px rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.5), inset 0 0 20px rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.1); }
+}
+
 .tooltip-popover {
     position: absolute; z-index: 100; pointer-events: all;
     animation: tooltipFadeIn 0.15s ease;
@@ -205,6 +241,7 @@ body {
             <div class="viewer-image-wrapper" id="imageWrapper">
                 <img id="viewerImage" class="viewer-image" style="display:none" alt="Demo step">
                 <div class="pins-container" id="pinsContainer"></div>
+                <div class="areas-container" id="areasContainer" style="position:absolute;inset:0;pointer-events:none;z-index:4"></div>
                 <div class="tooltip-popover" id="tooltipPopover" style="display:none">
                     <div class="tooltip-card">
                         <h4 class="tooltip-title" id="tooltipTitle"></h4>
@@ -289,6 +326,7 @@ function loadStep(i) {
     function ready() {
         img.style.display = 'block';
         renderPins();
+        renderAreas();
         if (started) autoShowFirstTip();
     }
 
@@ -331,6 +369,34 @@ function renderPins() {
             showTip(e, pin, idx);
         };
         c.appendChild(el);
+    });
+}
+
+function renderAreas() {
+    var c = document.getElementById('areasContainer');
+    c.innerHTML = '';
+    var step = demoData.steps[curStep];
+    if (!step || !step.areas) return;
+    step.areas.forEach(function(area, idx) {
+        var wrap = document.createElement('div');
+        wrap.className = 'spotlight-backdrop';
+        wrap.style.animationDelay = (0.3 + idx * 0.15) + 's';
+
+        var spot = document.createElement('div');
+        spot.className = 'spotlight-area';
+        spot.style.left = area.x + '%';
+        spot.style.top = area.y + '%';
+        spot.style.width = area.width + '%';
+        spot.style.height = area.height + '%';
+        spot.style.animationDelay = (0.5 + idx * 0.15) + 's';
+
+        var inner = document.createElement('div');
+        inner.className = 'spotlight-area-inner';
+        inner.style.animationDelay = (idx * 0.2) + 's';
+
+        spot.appendChild(inner);
+        wrap.appendChild(spot);
+        c.appendChild(wrap);
     });
 }
 

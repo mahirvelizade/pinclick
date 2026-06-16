@@ -59,7 +59,7 @@ $steps = $data['steps'] ?? [];
                         </div>
                         <div class="step-info">
                             <span class="step-label">Step <?= $i + 1 ?></span>
-                            <span class="step-pins"><?= count($step['pins'] ?? []) ?> pins</span>
+                            <span class="step-pins"><?= count($step['pins'] ?? []) ?> pins<?= count($step['areas'] ?? []) > 0 ? ', ' . count($step['areas']) . ' areas' : '' ?></span>
                         </div>
                         <button class="step-delete" onclick="event.stopPropagation();deleteStep(<?= $i ?>)" title="Delete step">×</button>
                     </div>
@@ -73,7 +73,29 @@ $steps = $data['steps'] ?? [];
 
         <main class="editor-main">
             <div class="editor-canvas-wrapper" id="canvasWrapper">
-                <div class="editor-canvas" id="editorCanvas">
+                <div class="editor-canvas" id="editorCanvas" style="position:relative">
+                    <div class="editor-toolbar" id="editorToolbar" style="display:none">
+                        <button class="toolbar-btn active" data-mode="pin" onclick="setMode('pin')" title="Pin mode (P)">
+                            <span class="btn-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/>
+                                    <circle cx="12" cy="9" r="2.5" fill="currentColor" fill-opacity="0.2"/>
+                                </svg>
+                            </span>
+                            <span>Pin</span>
+                            <span class="btn-shortcut">P</span>
+                        </button>
+                        <button class="toolbar-btn" data-mode="area" onclick="setMode('area')" title="Area mode (A)">
+                            <span class="btn-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                    <circle cx="12" cy="12" r="2" fill="currentColor" fill-opacity="0.25"/>
+                                </svg>
+                            </span>
+                            <span>Area</span>
+                            <span class="btn-shortcut">A</span>
+                        </button>
+                    </div>
                     <img id="stepImage" src="" alt="Step screenshot" class="editor-image" style="display:none">
                     <div class="no-image-message" id="noImageMsg">
                         <div class="empty-icon">
@@ -88,6 +110,8 @@ $steps = $data['steps'] ?? [];
                         <button class="btn btn-primary" onclick="uploadForStep()">Upload Image</button>
                     </div>
                     <div class="pins-container" id="pinsContainer"></div>
+                    <div class="areas-container" id="areasContainer"></div>
+                    <div class="area-preview" id="areaPreview" style="display:none"></div>
                 </div>
             </div>
         </main>
@@ -135,6 +159,29 @@ $steps = $data['steps'] ?? [];
     let dragPinIndex = null;
     let dragOffset = { x: 0, y: 0 };
 
+    let currentMode = 'pin';
+    let isDrawing = false;
+    let drawStart = { x: 0, y: 0 };
+    let selectedArea = null;
+
+    function setMode(mode) {
+        currentMode = mode;
+        document.querySelectorAll('.toolbar-btn').forEach(function(b) {
+            b.classList.toggle('active', b.dataset.mode === mode);
+        });
+        var canvas = document.getElementById('editorCanvas');
+        canvas.style.cursor = mode === 'area' ? 'crosshair' : 'default';
+        selectedArea = null;
+        selectedPin = null;
+        document.querySelectorAll('.pin-marker').forEach(function(el) { el.classList.remove('selected'); });
+        document.querySelectorAll('.area-box').forEach(function(el) { el.classList.remove('selected'); });
+        if (mode === 'area') {
+            updateAreaEditor(null);
+        } else {
+            updatePinEditor(null);
+        }
+    }
+
     function init() {
         if (demoData.steps && demoData.steps.length > 0) {
             loadStep(0);
@@ -145,6 +192,18 @@ $steps = $data['steps'] ?? [];
             demoData.title = this.value;
         });
         initAccentColor();
+
+        document.addEventListener('keydown', function(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            if (e.key === 'p' || e.key === 'P') { setMode('pin'); e.preventDefault(); }
+            if (e.key === 'a' || e.key === 'A') { setMode('area'); e.preventDefault(); }
+            if (e.key === 'Escape') {
+                selectedArea = null; selectedPin = null;
+                document.querySelectorAll('.area-box').forEach(function(el) { el.classList.remove('selected'); });
+                document.querySelectorAll('.pin-marker').forEach(function(el) { el.classList.remove('selected'); });
+                updateAreaEditor(null); updatePinEditor(null);
+            }
+        });
     }
 
     function initAccentColor() {
@@ -178,6 +237,7 @@ $steps = $data['steps'] ?? [];
         document.documentElement.style.setProperty('--accent-shadow', 'rgba(' + r + ',' + g + ',' + b + ',0.5)');
         document.documentElement.style.setProperty('--accent-glow', 'rgba(' + r + ',' + g + ',' + b + ',0.9)');
         renderPins();
+        renderAreas();
     }
 
     function loadStep(index) {
@@ -197,12 +257,15 @@ $steps = $data['steps'] ?? [];
             img.src = step.image;
             img.style.display = 'block';
             document.getElementById('noImageMsg').style.display = 'none';
+            document.getElementById('editorToolbar').style.display = 'flex';
             document.getElementById('currentImageInfo').innerHTML = `<span>${step.image}</span>`;
             img.onload = function() {
                 renderPins();
+                renderAreas();
             };
             if (img.complete) {
                 renderPins();
+                renderAreas();
             }
         } else {
             showNoImage();
@@ -214,7 +277,9 @@ $steps = $data['steps'] ?? [];
     function showNoImage() {
         document.getElementById('stepImage').style.display = 'none';
         document.getElementById('noImageMsg').style.display = 'flex';
+        document.getElementById('editorToolbar').style.display = 'none';
         document.getElementById('pinsContainer').innerHTML = '';
+        document.getElementById('areasContainer').innerHTML = '';
         document.getElementById('currentImageInfo').innerHTML = `<span class="text-muted">No image selected</span>`;
     }
 
@@ -410,13 +475,179 @@ $steps = $data['steps'] ?? [];
         }).catch(() => {});
     }
 
+    /* Area Drawing */
+    document.getElementById('editorCanvas').addEventListener('mousedown', function(e) {
+        if (currentMode !== 'area') return;
+        if (e.button !== 0) return;
+        if (e.target.closest('.pin-marker') || e.target.closest('.area-box')) return;
+        var steps = demoData.steps || [];
+        var step = steps[currentStep];
+        if (!step || !step.image) return;
+
+        isDrawing = true;
+        var rect = this.getBoundingClientRect();
+        drawStart = {
+            x: ((e.clientX - rect.left) / rect.width) * 100,
+            y: ((e.clientY - rect.top) / rect.height) * 100
+        };
+
+        var prev = document.getElementById('areaPreview');
+        prev.style.display = 'block';
+        prev.style.left = drawStart.x + '%';
+        prev.style.top = drawStart.y + '%';
+        prev.style.width = '0px';
+        prev.style.height = '0px';
+        prev.className = 'area-box drawing';
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', function(e) {
+        if (!isDrawing) return;
+        var canvas = document.getElementById('editorCanvas');
+        var rect = canvas.getBoundingClientRect();
+        var x = ((e.clientX - rect.left) / rect.width) * 100;
+        var y = ((e.clientY - rect.top) / rect.height) * 100;
+
+        var sx = Math.min(drawStart.x, x);
+        var sy = Math.min(drawStart.y, y);
+        var sw = Math.abs(x - drawStart.x);
+        var sh = Math.abs(y - drawStart.y);
+
+        var prev = document.getElementById('areaPreview');
+        prev.style.left = sx + '%';
+        prev.style.top = sy + '%';
+        prev.style.width = sw + '%';
+        prev.style.height = sh + '%';
+    });
+
+    document.addEventListener('mouseup', function(e) {
+        if (!isDrawing) return;
+        isDrawing = false;
+        var prev = document.getElementById('areaPreview');
+        prev.style.display = 'none';
+
+        var canvas = document.getElementById('editorCanvas');
+        var rect = canvas.getBoundingClientRect();
+        var x = ((e.clientX - rect.left) / rect.width) * 100;
+        var y = ((e.clientY - rect.top) / rect.height) * 100;
+
+        var sx = Math.min(drawStart.x, x);
+        var sy = Math.min(drawStart.y, y);
+        var sw = Math.abs(x - drawStart.x);
+        var sh = Math.abs(y - drawStart.y);
+
+        var minSize = 1;
+        if (sw < minSize || sh < minSize) return;
+
+        var steps = demoData.steps || [];
+        var step = steps[currentStep];
+        if (!step) return;
+        if (!step.areas) step.areas = [];
+
+        var newArea = {
+            x: Math.max(0, Math.min(100, sx)),
+            y: Math.max(0, Math.min(100, sy)),
+            width: Math.max(minSize, Math.min(100 - sx, sw)),
+            height: Math.max(minSize, Math.min(100 - sy, sh))
+        };
+
+        step.areas.push(newArea);
+        renderAreas();
+        saveDemo();
+        showToast('Area created!', 'success');
+    });
+
+    function renderAreas() {
+        var container = document.getElementById('areasContainer');
+        container.innerHTML = '';
+        var steps = demoData.steps || [];
+        var step = steps[currentStep];
+        if (!step || !step.areas) return;
+
+        step.areas.forEach(function(area, idx) {
+            var el = document.createElement('div');
+            el.className = 'area-box' + (selectedArea === idx ? ' selected' : '');
+            el.style.left = area.x + '%';
+            el.style.top = area.y + '%';
+            el.style.width = area.width + '%';
+            el.style.height = area.height + '%';
+            el.dataset.index = idx;
+
+            el.addEventListener('click', function(e) {
+                e.stopPropagation();
+                selectedArea = idx;
+                document.querySelectorAll('.area-box').forEach(function(a) {
+                    a.classList.toggle('selected', parseInt(a.dataset.index) === idx);
+                });
+                updateAreaEditor(idx);
+            });
+
+            container.appendChild(el);
+        });
+    }
+
+    function updateAreaEditor(index) {
+        var content = document.getElementById('pinEditorContent');
+        if (index === null || index === undefined) {
+            var steps = demoData.steps || [];
+            var step = steps[currentStep];
+            if (step && step.areas && step.areas.length > 0) {
+                content.innerHTML = '<p class="text-muted">Click an area to edit</p>';
+            } else if (currentMode === 'area') {
+                content.innerHTML = '<p class="text-muted">Drag on the image to create an area</p>';
+            } else {
+                content.innerHTML = '<p class="text-muted">Click on the image to create a pin</p>';
+            }
+            return;
+        }
+
+        var steps = demoData.steps || [];
+        var step = steps[currentStep];
+        if (!step || !step.areas || !step.areas[index]) return;
+
+        var area = step.areas[index];
+
+        content.innerHTML = `
+            <div class="form-group">
+                <label>Area Position</label>
+                <div class="position-info">
+                    <span>X: ${area.x.toFixed(1)}%</span>
+                    <span>Y: ${area.y.toFixed(1)}%</span>
+                    <span>W: ${area.width.toFixed(1)}%</span>
+                    <span>H: ${area.height.toFixed(1)}%</span>
+                </div>
+            </div>
+            <div class="pin-actions">
+                <button class="btn btn-sm btn-danger" onclick="deleteArea(${index})">🗑 Delete Area</button>
+            </div>
+        `;
+    }
+
+    function deleteArea(index) {
+        if (!confirm('Delete this area?')) return;
+        var steps = demoData.steps || [];
+        var step = steps[currentStep];
+        if (!step || !step.areas) return;
+
+        step.areas.splice(index, 1);
+        selectedArea = null;
+        renderAreas();
+        updateAreaEditor(null);
+        saveDemo();
+    }
+
     document.getElementById('editorCanvas').addEventListener('click', function(e) {
         if (isDragging) return;
+        if (e.target.closest('.pin-marker') || e.target.closest('.area-box')) return;
+        if (currentMode !== 'pin') {
+            selectedArea = null;
+            document.querySelectorAll('.area-box').forEach(function(a) { a.classList.remove('selected'); });
+            updateAreaEditor(null);
+            return;
+        }
         const steps = demoData.steps || [];
         const step = steps[currentStep];
         if (!step || !step.image) return;
-
-        if (e.target.closest('.pin-marker')) return;
 
         const rect = this.getBoundingClientRect();
         const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -486,7 +717,7 @@ $steps = $data['steps'] ?? [];
                 </div>
                 <div class="step-info">
                     <span class="step-label">Step ${i + 1}</span>
-                    <span class="step-pins">${(step.pins || []).length} pins</span>
+                    <span class="step-pins">${(step.pins || []).length} pins${(step.areas || []).length > 0 ? ', ' + step.areas.length + ' areas' : ''}</span>
                 </div>
                 <button class="step-delete" onclick="event.stopPropagation();deleteStep(${i})" title="Delete step">×</button>
             </div>

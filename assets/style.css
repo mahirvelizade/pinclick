@@ -424,8 +424,8 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .meta-item { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--text-muted); }
 .meta-item .emoji { font-size: 14px; }
 
-.demo-card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-.demo-card-actions .btn { font-size: 18px; line-height: 1; padding: 4px 8px; }
+.demo-card-actions { display: flex; gap: 6px; flex-wrap: nowrap; }
+.demo-card-actions .btn { font-size: 13px; line-height: 1; padding: 5px 8px; gap: 4px; }
 
 .empty-state { text-align: center; padding: 64px 32px; }
 .empty-icon { margin-bottom: 16px; }
@@ -947,7 +947,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
     .hero-clover { display: none; }
     .hero-clover-inline { display: none; }
     .btn-label { display: none; }
-    .demo-card-actions .btn { padding: 6px 10px; }
+    .demo-card-actions .btn { padding: 5px 8px; }
     .demos-grid { grid-template-columns: 1fr; }
     .features-grid { grid-template-columns: 1fr; }
     .steps-showcase { flex-direction: column; }

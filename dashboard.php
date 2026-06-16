@@ -69,11 +69,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         <span class="meta-item">📅 <?= date('M j, Y', strtotime($demo['created_at'])) ?></span>
                     </div>
                     <div class="demo-card-actions">
-                        <a href="editor.php?id=<?= $demo['id'] ?>" class="btn btn-primary btn-sm" title="Edit">✏️</a>
-                        <a href="viewer.php?id=<?= $demo['id'] ?>" target="_blank" class="btn btn-ghost btn-sm" title="View">👁️</a>
-                        <a href="embed.php?id=<?= $demo['id'] ?>" class="btn btn-ghost btn-sm" title="Embed">🔗</a>
-                        <a href="export.php?id=<?= $demo['id'] ?>" class="btn btn-ghost btn-sm" title="Export">📦</a>
-                        <button class="btn btn-danger btn-sm" onclick="deleteDemo(<?= $demo['id'] ?>)" title="Delete">🗑️</button>
+                        <a href="editor.php?id=<?= $demo['id'] ?>" class="btn btn-primary btn-sm" title="Edit">✏️ <span class="btn-label">edit</span></a>
+                        <a href="viewer.php?id=<?= $demo['id'] ?>" target="_blank" class="btn btn-ghost btn-sm" title="View">👁️ <span class="btn-label">view</span></a>
+                        <a href="embed.php?id=<?= $demo['id'] ?>" class="btn btn-ghost btn-sm" title="Embed">🔗 <span class="btn-label">embed</span></a>
+                        <a href="export.php?id=<?= $demo['id'] ?>" class="btn btn-ghost btn-sm" title="Export">📦 <span class="btn-label">export</span></a>
+                        <button class="btn btn-danger btn-sm" onclick="deleteDemo(<?= $demo['id'] ?>)" title="Delete">🗑️ <span class="btn-label">delete</span></button>
                     </div>
                 </div>
                 <?php endforeach; ?>

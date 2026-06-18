@@ -31,6 +31,7 @@ $accent_b = hexdec(substr($accent, 5, 2));
     --radius: 8px;
     --radius-lg: 12px;
     --accent: <?= $accent ?>;
+    --spotlight-color: rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.6);
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -92,41 +93,50 @@ body {
     0%, 100% { box-shadow: 0 2px 12px rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.5); }
     50% { box-shadow: 0 2px 20px rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.8); }
 }
+.pin-ripple {
+    position: absolute; inset: -8px; pointer-events: none;
+    border: 1.5px solid var(--accent);
+    border-radius: 50%;
+    opacity: 0;
+    animation: rippleExpand 2.5s ease-out infinite;
+}
 
 /* Spotlight Areas */
 .spotlight-backdrop {
     position: absolute; inset: 0; pointer-events: none; z-index: 4;
+    background: rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.08);
     opacity: 0;
-    animation: spotlightFadeIn 0.5s ease forwards;
-    animation-delay: 0.3s;
+    animation: WidgetBackdropAnimation_fadeIn 0.6s ease forwards;
+    animation-delay: 0.15s;
 }
-@keyframes spotlightFadeIn {
+@keyframes WidgetBackdropAnimation_fadeIn {
     from { opacity: 0; }
-    to { opacity: 1; }
+    to { opacity: 0.35; }
 }
 .spotlight-area {
     position: absolute; pointer-events: none; z-index: 5;
-    border: 2px solid var(--accent);
     border-radius: 6px;
     opacity: 0;
-    animation: spotlightAreaIn 0.5s ease forwards;
-    animation-delay: 0.5s;
-    background: rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.06);
-    box-shadow: 0 0 15px rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.15), inset 0 0 15px rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.06);
+    animation: spotlightAreaIn 0.5s ease forwards, WidgetSpotlight_spotlightBlink 2s ease infinite;
+    animation-delay: 0.5s, 0.5s;
+    background: rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.04);
 }
-.spotlight-area-inner {
-    position: absolute; inset: -2px;
-    border: 2px solid rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.3);
-    border-radius: 8px;
-    animation: spotlightPulse 2.5s ease-in-out infinite;
+.spotlight-area::before {
+    content: '';
+    position: absolute; inset: 0;
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    opacity: 1;
+    pointer-events: none;
 }
-@keyframes spotlightAreaIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
+@keyframes WidgetSpotlight_spotlightBlink {
+    0% { box-shadow: var(--spotlight-color) 0 0 0 0; opacity: .8; }
+    80% { box-shadow: var(--spotlight-color) 0 0 0 20px; opacity: 0; }
+    100% { box-shadow: var(--spotlight-color) 0 0 0 0; opacity: 0; }
 }
-@keyframes spotlightPulse {
-    0%, 100% { box-shadow: 0 0 10px rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.2), inset 0 0 10px rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.05); }
-    50% { box-shadow: 0 0 25px rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.5), inset 0 0 20px rgba(<?= $accent_r ?>,<?= $accent_g ?>,<?= $accent_b ?>,0.1); }
+@keyframes rippleExpand {
+    0% { transform: scale(0.8); opacity: 0.7; }
+    100% { transform: scale(1.3); opacity: 0; }
 }
 
 .tooltip-popover {
@@ -185,7 +195,25 @@ body {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.18); }
 }
-.play-label { margin-top: 20px; color: var(--text-muted); font-size: 14px; letter-spacing: 0.5px; }
+.play-label { margin-top: 20px; color: #fff; font-size: 14px; letter-spacing: 0.5px; }
+
+.welcome-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(11, 16, 32, 0.75);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    display: none; align-items: center; justify-content: center; padding: 20px;
+}
+.welcome-overlay.open { display: flex; }
+.welcome-card {
+    background: #fff; border-radius: 16px;
+    padding: 40px; max-width: 560px; width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.welcome-card h2 { font-size: 28px; font-weight: 700; margin-bottom: 20px; color: #111; text-align: center; }
+.welcome-card p { font-size: .875em; min-height: 1.5em; line-height: 1.5; color: #444; margin-bottom: 16px; }
+.welcome-card .btn-wrap { text-align: center; }
+.welcome-card .btn { margin-top: 12px; min-width: 160px; padding: 12px 24px; font-size: 15px; justify-content: center; }
+.welcome-card .btn-primary:hover { background: #fff; color: var(--accent); border-color: var(--accent); filter: none; }
 
 .embed-modal-overlay {
     position: fixed; inset: 0; z-index: 200;
@@ -250,9 +278,18 @@ body {
                     </div>
                 </div>
             </div>
-            <div class="viewer-overlay" id="viewerOverlay" onclick="startDemo()">
+            <div class="viewer-overlay" id="viewerOverlay" onclick="document.getElementById('welcomeOverlay').classList.add('open')">
                 <button class="play-btn"><svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></button>
                 <p class="play-label">Click to explore</p>
+            </div>
+            <div class="welcome-overlay" id="welcomeOverlay">
+                <div class="welcome-card">
+                    <h2>Welcome to Demo</h2>
+                    <p>We're excited to introduce you to our platform and show how it can help you gain valuable insights, streamline your workflows, and strengthen your overall operations.</p>
+                    <p>This short product tour takes just a few minutes and provides a high-level overview of the platform's key features, capabilities, and common use cases.</p>
+                    <p>Once you've completed the tour, you can explore the platform further by signing up for a free trial. If you've already submitted the required information, our team will review your request and get in touch with you soon.</p>
+                    <div class="btn-wrap"><button class="btn btn-primary" onclick="startDemo()">Continue</button></div>
+                </div>
             </div>
         </div>
     </div>
@@ -290,7 +327,7 @@ body {
 
 <script>
 var PINCLICK_DATA = <?= $json_data ?>;
-var curStep = 0, demoData = null, demoId = <?= $id ?>, started = false;
+var curStep = 0, demoData = null, demoId = <?= $id ?>, started = false, currentPinIdx = 0;
 
 function init() {
     demoData = PINCLICK_DATA;
@@ -318,7 +355,7 @@ function renderDots() {
 function loadStep(i) {
     var step = demoData.steps[i];
     if (!step) return;
-    curStep = i;
+    curStep = i; currentPinIdx = 0;
     var img = document.getElementById('viewerImage');
     img.style.display = 'none';
     hideTip();
@@ -326,7 +363,6 @@ function loadStep(i) {
     function ready() {
         img.style.display = 'block';
         renderPins();
-        renderAreas();
         if (started) autoShowFirstTip();
     }
 
@@ -341,12 +377,7 @@ function loadStep(i) {
     };
     img.src = url;
 
-    document.getElementById('prevBtn').disabled = i === 0;
-    document.getElementById('prevBtn').style.opacity = i === 0 ? '0.4' : '1';
-    var nb = document.getElementById('nextBtn');
-    nb.disabled = i === demoData.steps.length - 1;
-    nb.style.opacity = i === demoData.steps.length - 1 ? '0.4' : '1';
-    nb.textContent = i === demoData.steps.length - 1 ? '✅ Finish' : 'Next ➡️';
+    updateNavButtons();
 
     document.querySelectorAll('.step-dot').forEach(function(d, idx) {
         d.classList.toggle('active', idx === i);
@@ -359,11 +390,12 @@ function renderPins() {
     var step = demoData.steps[curStep];
     if (!step || !step.pins) return;
     step.pins.forEach(function(pin, idx) {
+        if (idx > currentPinIdx) return;
         var el = document.createElement('div');
         el.className = 'pin-marker';
         el.style.left = pin.x + '%';
         el.style.top = pin.y + '%';
-        el.innerHTML = '<span class="pin-dot"></span>';
+        el.innerHTML = '<span class="pin-dot"></span><span class="pin-ripple"></span>';
         el.onclick = function(e) {
             e.stopPropagation();
             showTip(e, pin, idx);
@@ -372,15 +404,21 @@ function renderPins() {
     });
 }
 
-function renderAreas() {
+function renderAreas(pinIdx) {
     var c = document.getElementById('areasContainer');
     c.innerHTML = '';
     var step = demoData.steps[curStep];
-    if (!step || !step.areas) return;
-    step.areas.forEach(function(area, idx) {
+    if (!step) return;
+    var areas = null;
+    if (pinIdx !== undefined && step.pins && step.pins[pinIdx] && step.pins[pinIdx].areas) {
+        areas = step.pins[pinIdx].areas;
+    } else if (step.areas) {
+        areas = step.areas;
+    }
+    if (!areas) return;
+    areas.forEach(function(area, idx) {
         var wrap = document.createElement('div');
         wrap.className = 'spotlight-backdrop';
-        wrap.style.animationDelay = (0.3 + idx * 0.15) + 's';
 
         var spot = document.createElement('div');
         spot.className = 'spotlight-area';
@@ -388,13 +426,7 @@ function renderAreas() {
         spot.style.top = area.y + '%';
         spot.style.width = area.width + '%';
         spot.style.height = area.height + '%';
-        spot.style.animationDelay = (0.5 + idx * 0.15) + 's';
 
-        var inner = document.createElement('div');
-        inner.className = 'spotlight-area-inner';
-        inner.style.animationDelay = (idx * 0.2) + 's';
-
-        spot.appendChild(inner);
         wrap.appendChild(spot);
         c.appendChild(wrap);
     });
@@ -414,57 +446,109 @@ function showTip(e, pin, idx) {
         btn.textContent = 'Next'; btn.dataset.action = 'next';
     }
 
+    renderAreas(idx);
+
     var wrap = document.getElementById('imageWrapper');
     var wr = wrap.getBoundingClientRect();
     var pr = e.currentTarget.getBoundingClientRect();
     var cx = pr.left - wr.left + pr.width / 2;
     var cy = pr.top - wr.top + pr.height / 2;
-
     var gap = 16;
+
+    function tryPlace(hSide, vSide) {
+        var fx, fy;
+        if (hSide === 'right') { fx = cx + gap; pop.style.transform = 'none'; }
+        else if (hSide === 'left') { fx = cx - gap; pop.style.transform = 'translateX(-100%)'; }
+        else { fx = cx - pop.offsetWidth / 2; pop.style.transform = 'none'; }
+        if (vSide === 'down') { fy = cy + gap; }
+        else if (vSide === 'up') { fy = cy - gap; }
+        else { fy = cy - pop.offsetHeight / 2; }
+        pop.style.left = Math.round(fx) + 'px';
+        pop.style.top = Math.round(fy) + 'px';
+        pop.style.display = 'block';
+        var por = pop.getBoundingClientRect();
+        if (por.right > wr.right || por.left < wr.left || por.bottom > wr.bottom || por.top < wr.top) {
+            pop.style.display = 'none';
+            return false;
+        }
+        var areaEls = document.querySelectorAll('.spotlight-area');
+        for (var i = 0; i < areaEls.length; i++) {
+            var ar = areaEls[i].getBoundingClientRect();
+            if (!(por.right < ar.left || por.left > ar.right || por.bottom < ar.top || por.top > ar.bottom)) {
+                pop.style.display = 'none';
+                return false;
+            }
+        }
+        return true;
+    }
+
     var dirH = pin.x < 50 ? 'right' : 'left';
     var dirV = pin.y < 50 ? 'down' : 'up';
-    var fx, fy;
+    var ordersH = [dirH, 'centerH', dirH === 'right' ? 'left' : 'right'];
+    var ordersV = [dirV, 'centerV', dirV === 'down' ? 'up' : 'down'];
+    var gapValues = [16, 32, 48];
+    var placed = false;
 
-    if (dirH === 'right') { fx = cx + gap; pop.style.transform = 'none'; }
-    else { fx = cx - gap; pop.style.transform = 'translateX(-100%)'; }
+    for (var gi = 0; gi < gapValues.length && !placed; gi++) {
+        gap = gapValues[gi];
+        for (var hi = 0; hi < 3 && !placed; hi++) {
+            for (var vi = 0; vi < 3 && !placed; vi++) {
+                if (tryPlace(ordersH[hi], ordersV[vi])) placed = true;
+            }
+        }
+    }
 
-    if (dirV === 'down') { fy = cy + gap; }
-    else { fy = cy - gap; }
-
-    pop.style.left = Math.round(fx) + 'px';
-    pop.style.top = Math.round(fy) + 'px';
-    pop.style.display = 'block';
-
-    var por = pop.getBoundingClientRect();
-
-    if (por.right > wr.right) { fx = cx - gap; pop.style.transform = 'translateX(-100%)'; }
-    else if (por.left < wr.left) { fx = cx + gap; pop.style.transform = 'none'; }
-
-    if (por.bottom > wr.height - 5) { fy = cy - gap; }
-    else if (por.top < 5) { fy = cy + gap; }
-
-    pop.style.left = Math.round(fx) + 'px';
-    pop.style.top = Math.round(fy) + 'px';
     pop.className = 'tooltip-popover';
-    pop.style.display = 'block';
+    pop.style.display = placed ? 'block' : 'none';
 
     fetch('api/track_click.php', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({demo_id:demoId,step_index:curStep,pin_index:idx}) }).catch(function(){});
 }
 
 function autoShowFirstTip() {
-    var firstEl = document.querySelector('.pin-marker');
-    if (!firstEl) return;
     var step = demoData.steps[curStep];
-    if (!step || !step.pins || !step.pins.length) return;
-    showTip({ currentTarget: firstEl }, step.pins[0], 0);
+    if (!step || !step.pins || currentPinIdx >= step.pins.length) return;
+    var el = document.querySelectorAll('.pin-marker')[currentPinIdx];
+    if (!el) return;
+    showTip({ currentTarget: el }, step.pins[currentPinIdx], currentPinIdx);
 }
 
-function hideTip() { document.getElementById('tooltipPopover').style.display = 'none'; }
-function nextStep() { if (curStep < demoData.steps.length - 1) loadStep(curStep + 1); }
+function hideTip() {
+    document.getElementById('tooltipPopover').style.display = 'none';
+    document.getElementById('areasContainer').innerHTML = '';
+}
+
+function updateNavButtons() {
+    var step = demoData.steps[curStep];
+    document.getElementById('prevBtn').disabled = curStep === 0;
+    document.getElementById('prevBtn').style.opacity = curStep === 0 ? '0.4' : '1';
+    var nb = document.getElementById('nextBtn');
+    nb.disabled = false;
+    nb.style.opacity = '1';
+    var isLastStep = curStep === demoData.steps.length - 1;
+    var isLastPin = step && step.pins ? currentPinIdx >= step.pins.length - 1 : true;
+    nb.textContent = isLastStep && isLastPin ? '🔄 Replay' : 'Next ➡️';
+}
+
+function nextStep() {
+    var step = demoData.steps[curStep];
+    if (step && step.pins && currentPinIdx < step.pins.length - 1) {
+        currentPinIdx++;
+        renderPins();
+        hideTip();
+        var el = document.querySelectorAll('.pin-marker')[currentPinIdx];
+        if (el) showTip({ currentTarget: el }, step.pins[currentPinIdx], currentPinIdx);
+        updateNavButtons();
+    } else if (curStep < demoData.steps.length - 1) {
+        loadStep(curStep + 1);
+    } else {
+        restartDemo();
+    }
+}
 function prevStep() { if (curStep > 0) loadStep(curStep - 1); }
-function restartDemo() { hideTip(); loadStep(0); }
+function restartDemo() { hideTip(); currentPinIdx = 0; loadStep(0); }
 
 function startDemo() {
+    document.getElementById('welcomeOverlay').classList.remove('open');
     started = true;
     document.getElementById('viewerOverlay').classList.add('hidden');
     document.getElementById('viewerFooter').style.opacity = '1';
@@ -474,9 +558,13 @@ function startDemo() {
 function handleTooltipAction() {
     var btn = document.getElementById('tooltipAction');
     hideTip();
-    if (btn.dataset.action === 'next') nextStep();
-    else if (btn.dataset.action === 'previous') prevStep();
-    else if (btn.dataset.action === 'url') window.open(btn.dataset.url, '_blank');
+    if (btn.dataset.action === 'next') {
+        nextStep();
+    } else if (btn.dataset.action === 'previous') {
+        prevStep();
+    } else if (btn.dataset.action === 'url') {
+        window.open(btn.dataset.url, '_blank');
+    }
 }
 
 function closeViewer() {
@@ -520,7 +608,9 @@ document.addEventListener('keydown', function(e) {
 });
 
 document.getElementById('imageWrapper').onclick = function(e) {
-    if (!e.target.closest('.tooltip-popover') && !e.target.closest('.pin-marker')) hideTip();
+    if (!e.target.closest('.tooltip-popover') && !e.target.closest('.pin-marker')) {
+        hideTip();
+    }
 };
 
 init();

@@ -34,6 +34,26 @@ $steps = $data['steps'] ?? [];
                 <a href="dashboard.php" class="nav-back" title="Back to Dashboard">←</a>
                 <input type="text" class="editor-title-input" id="demoTitle" value="<?= htmlspecialchars($demo['title']) ?>" placeholder="Demo Title">
             </div>
+            <div class="nav-center">
+                <div class="mode-toggle" id="modeToggle">
+                    <button class="mode-btn active" data-mode="pin" onclick="setMode('pin')" title="Pin mode (P)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/>
+                            <circle cx="12" cy="9" r="2.5" fill="currentColor" fill-opacity="0.2"/>
+                        </svg>
+                        Pin
+                        <span class="mode-shortcut">P</span>
+                    </button>
+                    <button class="mode-btn" data-mode="area" onclick="setMode('area')" title="Area mode (A)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                            <circle cx="12" cy="12" r="2" fill="currentColor" fill-opacity="0.25"/>
+                        </svg>
+                        Area
+                        <span class="mode-shortcut">A</span>
+                    </button>
+                </div>
+            </div>
             <div class="nav-right">
                 <span class="nav-demo-id">ID: <?= $id ?></span>
                 <button class="btn btn-ghost btn-sm" onclick="saveDemo()">💾 Save</button>
@@ -59,7 +79,11 @@ $steps = $data['steps'] ?? [];
                         </div>
                         <div class="step-info">
                             <span class="step-label">Step <?= $i + 1 ?></span>
-                            <span class="step-pins"><?= count($step['pins'] ?? []) ?> pins<?= count($step['areas'] ?? []) > 0 ? ', ' . count($step['areas']) . ' areas' : '' ?></span>
+                            <span class="step-pins"><?php
+                                $pin_areas = 0;
+                                foreach (($step['pins'] ?? []) as $p) { if (isset($p['areas']) && count($p['areas']) > 0) $pin_areas++; }
+                                echo count($step['pins'] ?? []) . ' pins' . ($pin_areas > 0 ? ', ' . $pin_areas . ' areas' : '');
+                            ?></span>
                         </div>
                         <button class="step-delete" onclick="event.stopPropagation();deleteStep(<?= $i ?>)" title="Delete step">×</button>
                     </div>
@@ -74,28 +98,6 @@ $steps = $data['steps'] ?? [];
         <main class="editor-main">
             <div class="editor-canvas-wrapper" id="canvasWrapper">
                 <div class="editor-canvas" id="editorCanvas" style="position:relative">
-                    <div class="editor-toolbar" id="editorToolbar" style="display:none">
-                        <button class="toolbar-btn active" data-mode="pin" onclick="setMode('pin')" title="Pin mode (P)">
-                            <span class="btn-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/>
-                                    <circle cx="12" cy="9" r="2.5" fill="currentColor" fill-opacity="0.2"/>
-                                </svg>
-                            </span>
-                            <span>Pin</span>
-                            <span class="btn-shortcut">P</span>
-                        </button>
-                        <button class="toolbar-btn" data-mode="area" onclick="setMode('area')" title="Area mode (A)">
-                            <span class="btn-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="3" width="18" height="18" rx="2"/>
-                                    <circle cx="12" cy="12" r="2" fill="currentColor" fill-opacity="0.25"/>
-                                </svg>
-                            </span>
-                            <span>Area</span>
-                            <span class="btn-shortcut">A</span>
-                        </button>
-                    </div>
                     <img id="stepImage" src="" alt="Step screenshot" class="editor-image" style="display:none">
                     <div class="no-image-message" id="noImageMsg">
                         <div class="empty-icon">
@@ -163,23 +165,52 @@ $steps = $data['steps'] ?? [];
     let isDrawing = false;
     let drawStart = { x: 0, y: 0 };
     let selectedArea = null;
+    let isAreaDragging = false;
+    let dragAreaIdx = null;
+    let areaDragStartX = 0;
+    let areaDragStartY = 0;
+    let areaOrigX = 0;
+    let areaOrigY = 0;
+    let areaDragMoved = false;
+    let undoStack = [];
+    function getPinAreas() {
+        var step = demoData.steps ? demoData.steps[currentStep] : null;
+        if (!step) return null;
+        if (selectedPin === null || selectedPin === undefined) return null;
+        var pin = step.pins ? step.pins[selectedPin] : null;
+        return pin ? (pin.areas || null) : null;
+    }
+
+    let isResizing = false;
+    let resizeAreaIdx = null;
+    let resizeHandle = null;
+    let resizeStartX = 0;
+    let resizeStartY = 0;
+    let resizeOrig = { x: 0, y: 0, width: 0, height: 0 };
 
     function setMode(mode) {
+        isResizing = false; resizeAreaIdx = null;
+        isAreaDragging = false;
+        dragAreaIdx = null;
         currentMode = mode;
-        document.querySelectorAll('.toolbar-btn').forEach(function(b) {
+        document.querySelectorAll('.mode-btn').forEach(function(b) {
             b.classList.toggle('active', b.dataset.mode === mode);
         });
         var canvas = document.getElementById('editorCanvas');
         canvas.style.cursor = mode === 'area' ? 'crosshair' : 'default';
         selectedArea = null;
-        selectedPin = null;
-        document.querySelectorAll('.pin-marker').forEach(function(el) { el.classList.remove('selected'); });
         document.querySelectorAll('.area-box').forEach(function(el) { el.classList.remove('selected'); });
+        if (selectedPin !== null && selectedPin !== undefined) {
+            document.querySelectorAll('.pin-marker').forEach(function(el) { el.classList.remove('selected'); });
+            var pinEl = document.querySelector('.pin-marker[data-index="' + selectedPin + '"]');
+            if (pinEl) pinEl.classList.add('selected');
+        }
         if (mode === 'area') {
             updateAreaEditor(null);
         } else {
-            updatePinEditor(null);
+            updatePinEditor(selectedPin);
         }
+        renderAreas();
     }
 
     function init() {
@@ -198,10 +229,26 @@ $steps = $data['steps'] ?? [];
             if (e.key === 'p' || e.key === 'P') { setMode('pin'); e.preventDefault(); }
             if (e.key === 'a' || e.key === 'A') { setMode('area'); e.preventDefault(); }
             if (e.key === 'Escape') {
+                isResizing = false; resizeAreaIdx = null;
+        isResizing = false; resizeAreaIdx = null;
+        isAreaDragging = false;
+        dragAreaIdx = null;
                 selectedArea = null; selectedPin = null;
                 document.querySelectorAll('.area-box').forEach(function(el) { el.classList.remove('selected'); });
                 document.querySelectorAll('.pin-marker').forEach(function(el) { el.classList.remove('selected'); });
                 updateAreaEditor(null); updatePinEditor(null);
+                renderAreas();
+            }
+            if ((e.key === 'Delete' || e.key === 'Backspace') && selectedArea !== null) {
+                e.preventDefault();
+                deleteArea(selectedArea);
+            } else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedPin !== null && selectedPin !== undefined) {
+                e.preventDefault();
+                deletePin(selectedPin);
+            }
+            if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+                e.preventDefault();
+                undoLastAction();
             }
         });
     }
@@ -243,6 +290,8 @@ $steps = $data['steps'] ?? [];
     function loadStep(index) {
         currentStep = index;
         selectedPin = null;
+        isAreaDragging = false;
+        dragAreaIdx = null;
         const steps = demoData.steps || [];
         if (!steps[index]) return;
 
@@ -257,13 +306,14 @@ $steps = $data['steps'] ?? [];
             img.src = step.image;
             img.style.display = 'block';
             document.getElementById('noImageMsg').style.display = 'none';
-            document.getElementById('editorToolbar').style.display = 'flex';
             document.getElementById('currentImageInfo').innerHTML = `<span>${step.image}</span>`;
             img.onload = function() {
+                syncPinsContainer();
                 renderPins();
                 renderAreas();
             };
             if (img.complete) {
+                syncPinsContainer();
                 renderPins();
                 renderAreas();
             }
@@ -277,10 +327,22 @@ $steps = $data['steps'] ?? [];
     function showNoImage() {
         document.getElementById('stepImage').style.display = 'none';
         document.getElementById('noImageMsg').style.display = 'flex';
-        document.getElementById('editorToolbar').style.display = 'none';
-        document.getElementById('pinsContainer').innerHTML = '';
+        const c = document.getElementById('pinsContainer');
+        c.innerHTML = '';
+        c.style.left = c.style.top = c.style.width = c.style.height = '';
         document.getElementById('areasContainer').innerHTML = '';
         document.getElementById('currentImageInfo').innerHTML = `<span class="text-muted">No image selected</span>`;
+    }
+
+    function syncPinsContainer() {
+        const img = document.getElementById('stepImage');
+        const container = document.getElementById('pinsContainer');
+        const imgRect = img.getBoundingClientRect();
+        const canvasRect = document.getElementById('editorCanvas').getBoundingClientRect();
+        container.style.left = (imgRect.left - canvasRect.left) + 'px';
+        container.style.top = (imgRect.top - canvasRect.top) + 'px';
+        container.style.width = imgRect.width + 'px';
+        container.style.height = imgRect.height + 'px';
     }
 
     function renderPins() {
@@ -296,7 +358,7 @@ $steps = $data['steps'] ?? [];
             pinEl.style.left = pin.x + '%';
             pinEl.style.top = pin.y + '%';
             pinEl.dataset.index = idx;
-            pinEl.innerHTML = `<span class="pin-dot"></span><span class="pin-number">${idx + 1}</span>`;
+            pinEl.innerHTML = '<span class="pin-dot"></span><span class="pin-number">' + (idx + 1) + '</span>';
 
             pinEl.addEventListener('mousedown', (e) => {
                 e.preventDefault();
@@ -316,10 +378,12 @@ $steps = $data['steps'] ?? [];
 
     function selectPin(index) {
         selectedPin = index;
+        selectedArea = null;
         document.querySelectorAll('.pin-marker').forEach(el => el.classList.remove('selected'));
         const pinEl = document.querySelector(`.pin-marker[data-index="${index}"]`);
         if (pinEl) pinEl.classList.add('selected');
         updatePinEditor(index);
+        renderAreas();
     }
 
     function updatePinEditor(index) {
@@ -410,6 +474,7 @@ $steps = $data['steps'] ?? [];
         step.pins.splice(index, 1);
         selectedPin = null;
         renderPins();
+        renderAreas();
         updatePinEditor(null);
         saveDemo();
     }
@@ -483,6 +548,14 @@ $steps = $data['steps'] ?? [];
         var steps = demoData.steps || [];
         var step = steps[currentStep];
         if (!step || !step.image) return;
+        if (selectedPin === null || selectedPin === undefined) {
+            showToast('Select a pin first to add areas', 'error');
+            return;
+        }
+        if (step.pins[selectedPin] && step.pins[selectedPin].areas && step.pins[selectedPin].areas.length > 0) {
+            showToast('This pin already has an area', 'error');
+            return;
+        }
 
         isDrawing = true;
         var rect = this.getBoundingClientRect();
@@ -491,17 +564,87 @@ $steps = $data['steps'] ?? [];
             y: ((e.clientY - rect.top) / rect.height) * 100
         };
 
-        var prev = document.getElementById('areaPreview');
-        prev.style.display = 'block';
-        prev.style.left = drawStart.x + '%';
-        prev.style.top = drawStart.y + '%';
-        prev.style.width = '0px';
-        prev.style.height = '0px';
-        prev.className = 'area-box drawing';
-        e.preventDefault();
+    document.querySelectorAll('.area-box').forEach(function(a) { a.classList.remove('selected'); });
+    var prev = document.getElementById('areaPreview');
+    prev.style.display = 'block';
+    prev.style.left = drawStart.x + '%';
+    prev.style.top = drawStart.y + '%';
+    prev.style.width = '0px';
+    prev.style.height = '0px';
+    prev.className = 'area-box drawing';
+    e.preventDefault();
     });
 
     document.addEventListener('mousemove', function(e) {
+        if (isResizing) {
+            var canvas = document.getElementById('editorCanvas');
+            var rect = canvas.getBoundingClientRect();
+            var dx = ((e.clientX - resizeStartX) / rect.width) * 100;
+            var dy = ((e.clientY - resizeStartY) / rect.height) * 100;
+
+            var steps = demoData.steps || [];
+            var step = steps[currentStep];
+            var areas = getPinAreas();
+            if (!areas || !areas[resizeAreaIdx]) return;
+
+            var area = areas[resizeAreaIdx];
+            var o = resizeOrig;
+            var minSize = 3;
+
+            if (resizeHandle === 'se') {
+                area.width = Math.max(minSize, o.width + dx);
+                area.height = Math.max(minSize, o.height + dy);
+            } else if (resizeHandle === 'sw') {
+                area.x = o.x + dx;
+                area.width = Math.max(minSize, o.width - dx);
+                area.height = Math.max(minSize, o.height + dy);
+            } else if (resizeHandle === 'ne') {
+                area.y = o.y + dy;
+                area.width = Math.max(minSize, o.width + dx);
+                area.height = Math.max(minSize, o.height - dy);
+            } else if (resizeHandle === 'nw') {
+                area.x = o.x + dx;
+                area.y = o.y + dy;
+                area.width = Math.max(minSize, o.width - dx);
+                area.height = Math.max(minSize, o.height - dy);
+            }
+
+            area.width = Math.min(100 - area.x, area.width);
+            area.height = Math.min(100 - area.y, area.height);
+            if (area.width < minSize) area.width = minSize;
+            if (area.height < minSize) area.height = minSize;
+
+            renderAreas();
+            if (selectedArea === resizeAreaIdx) {
+                updateAreaEditor(resizeAreaIdx);
+            }
+            return;
+        }
+        if (isAreaDragging) {
+            var canvas = document.getElementById('editorCanvas');
+            var rect = canvas.getBoundingClientRect();
+            var dx = ((e.clientX - areaDragStartX) / rect.width) * 100;
+            var dy = ((e.clientY - areaDragStartY) / rect.height) * 100;
+
+            var steps = demoData.steps || [];
+            var step = steps[currentStep];
+            var areas = getPinAreas();
+            if (!areas || !areas[dragAreaIdx]) return;
+
+            var area = areas[dragAreaIdx];
+            area.x = Math.max(0, Math.min(100 - area.width, areaOrigX + dx));
+            area.y = Math.max(0, Math.min(100 - area.height, areaOrigY + dy));
+
+            if (Math.abs(e.clientX - areaDragStartX) > 3 || Math.abs(e.clientY - areaDragStartY) > 3) {
+                areaDragMoved = true;
+            }
+
+            renderAreas();
+            if (selectedArea === dragAreaIdx) {
+                updateAreaEditor(dragAreaIdx);
+            }
+            return;
+        }
         if (!isDrawing) return;
         var canvas = document.getElementById('editorCanvas');
         var rect = canvas.getBoundingClientRect();
@@ -521,6 +664,34 @@ $steps = $data['steps'] ?? [];
     });
 
     document.addEventListener('mouseup', function(e) {
+        if (isResizing) {
+            isResizing = false;
+            if (resizeAreaIdx !== null) {
+                var steps = demoData.steps || [];
+                var step = steps[currentStep];
+                var areas = getPinAreas();
+                if (areas && areas[resizeAreaIdx]) {
+                    saveDemo();
+                }
+            }
+            resizeAreaIdx = null;
+            return;
+        }
+        if (isAreaDragging) {
+            isAreaDragging = false;
+            if (dragAreaIdx !== null && areaDragMoved) {
+                var steps = demoData.steps || [];
+                var step = steps[currentStep];
+                var areas = getPinAreas();
+                if (areas && areas[dragAreaIdx]) {
+                    saveDemo();
+                }
+            }
+            areaDragMoved = false;
+            document.querySelectorAll('.area-box').forEach(function(a) { a.style.cursor = ''; });
+            dragAreaIdx = null;
+            return;
+        }
         if (!isDrawing) return;
         isDrawing = false;
         var prev = document.getElementById('areaPreview');
@@ -542,7 +713,13 @@ $steps = $data['steps'] ?? [];
         var steps = demoData.steps || [];
         var step = steps[currentStep];
         if (!step) return;
-        if (!step.areas) step.areas = [];
+        if (selectedPin === null || selectedPin === undefined) {
+            showToast('Select a pin first', 'error');
+            return;
+        }
+        var pin = step.pins[selectedPin];
+        if (!pin) return;
+        if (!pin.areas) pin.areas = [];
 
         var newArea = {
             x: Math.max(0, Math.min(100, sx)),
@@ -551,61 +728,127 @@ $steps = $data['steps'] ?? [];
             height: Math.max(minSize, Math.min(100 - sy, sh))
         };
 
-        step.areas.push(newArea);
+        var replaced = pin.areas.length > 0;
+        pin.areas = [newArea];
         renderAreas();
         saveDemo();
-        showToast('Area created!', 'success');
+        showToast(replaced ? 'Area replaced!' : 'Area created!', 'success');
     });
+
+    function startResize(e, idx, handle) {
+        if (e.button !== 0) return;
+        e.stopPropagation();
+        e.preventDefault();
+        var steps = demoData.steps || [];
+        var step = steps[currentStep];
+        var areas = getPinAreas();
+        if (!areas || !areas[idx]) return;
+        var area = areas[idx];
+        isResizing = true;
+        resizeAreaIdx = idx;
+        resizeHandle = handle;
+        resizeStartX = e.clientX;
+        resizeStartY = e.clientY;
+        resizeOrig = { x: area.x, y: area.y, width: area.width, height: area.height };
+    }
 
     function renderAreas() {
         var container = document.getElementById('areasContainer');
         container.innerHTML = '';
         var steps = demoData.steps || [];
         var step = steps[currentStep];
-        if (!step || !step.areas) return;
+        if (!step) return;
 
-        step.areas.forEach(function(area, idx) {
-            var el = document.createElement('div');
-            el.className = 'area-box' + (selectedArea === idx ? ' selected' : '');
-            el.style.left = area.x + '%';
-            el.style.top = area.y + '%';
-            el.style.width = area.width + '%';
-            el.style.height = area.height + '%';
-            el.dataset.index = idx;
+        (step.pins || []).forEach(function(p, pi) {
+            if (!p || !p.areas) return;
+            var isSelectedPin = (selectedPin === pi);
+            p.areas.forEach(function(area, ai) {
+                var el = makeAreaEl(area);
 
-            el.addEventListener('click', function(e) {
-                e.stopPropagation();
-                selectedArea = idx;
-                document.querySelectorAll('.area-box').forEach(function(a) {
-                    a.classList.toggle('selected', parseInt(a.dataset.index) === idx);
-                });
-                updateAreaEditor(idx);
+                if (isSelectedPin) {
+                    el.classList.add('area-draggable');
+                    el.addEventListener('mousedown', function(e) {
+                        if (e.button !== 0) return;
+                        if (e.target.classList.contains('area-handle')) return;
+                        e.stopPropagation();
+                        isAreaDragging = true;
+                        dragAreaIdx = ai;
+                        areaDragStartX = e.clientX;
+                        areaDragStartY = e.clientY;
+                        areaOrigX = area.x;
+                        areaOrigY = area.y;
+                        areaDragMoved = false;
+                        el.style.cursor = 'grabbing';
+                    });
+                    el.addEventListener('click', function(e) {
+                        if (areaDragMoved) { areaDragMoved = false; el.style.cursor = ''; return; }
+                        if (e.target.classList.contains('area-handle')) return;
+                        e.stopPropagation();
+                        selectedArea = ai;
+                        document.querySelectorAll('.area-box').forEach(function(a) { a.classList.remove('selected'); });
+                        el.classList.add('selected');
+                        updateAreaEditor(ai);
+                    });
+                    if (selectedArea === ai) el.classList.add('selected');
+                    ['nw', 'ne', 'sw', 'se'].forEach(function(h) {
+                        var hEl = document.createElement('div');
+                        hEl.className = 'area-handle area-handle-' + h;
+                        hEl.addEventListener('mousedown', function(e) {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            startResize(e, ai, h);
+                        });
+                        el.appendChild(hEl);
+                    });
+                } else {
+                    el.style.cursor = 'pointer';
+                    el.addEventListener('click', function(e) {
+                        if (e.target.classList.contains('area-handle')) {
+                            selectPin(pi);
+                            return;
+                        }
+                        e.stopPropagation();
+                        selectPin(pi);
+                    });
+                }
+
+                container.appendChild(el);
             });
-
-            container.appendChild(el);
         });
+    }
+
+    function makeAreaEl(area) {
+        var el = document.createElement('div');
+        el.className = 'area-box';
+        el.style.left = area.x + '%';
+        el.style.top = area.y + '%';
+        el.style.width = area.width + '%';
+        el.style.height = area.height + '%';
+        return el;
     }
 
     function updateAreaEditor(index) {
         var content = document.getElementById('pinEditorContent');
         if (index === null || index === undefined) {
-            var steps = demoData.steps || [];
-            var step = steps[currentStep];
-            if (step && step.areas && step.areas.length > 0) {
+            var areas = getPinAreas();
+            if (areas && areas.length > 0) {
                 content.innerHTML = '<p class="text-muted">Click an area to edit</p>';
             } else if (currentMode === 'area') {
-                content.innerHTML = '<p class="text-muted">Drag on the image to create an area</p>';
+                if (selectedPin === null || selectedPin === undefined) {
+                    content.innerHTML = '<p class="text-muted">Select a pin first, then drag on the image to create an area</p>';
+                } else {
+                    content.innerHTML = '<p class="text-muted">Drag on the image to create an area</p>';
+                }
             } else {
                 content.innerHTML = '<p class="text-muted">Click on the image to create a pin</p>';
             }
             return;
         }
 
-        var steps = demoData.steps || [];
-        var step = steps[currentStep];
-        if (!step || !step.areas || !step.areas[index]) return;
+        var areas = getPinAreas();
+        if (!areas || !areas[index]) return;
 
-        var area = step.areas[index];
+        var area = areas[index];
 
         content.innerHTML = `
             <div class="form-group">
@@ -625,19 +868,45 @@ $steps = $data['steps'] ?? [];
 
     function deleteArea(index) {
         if (!confirm('Delete this area?')) return;
-        var steps = demoData.steps || [];
-        var step = steps[currentStep];
-        if (!step || !step.areas) return;
+        var areas = getPinAreas();
+        if (!areas) return;
 
-        step.areas.splice(index, 1);
+        areas.splice(index, 1);
         selectedArea = null;
         renderAreas();
         updateAreaEditor(null);
         saveDemo();
     }
 
+    function undoLastAction() {
+        if (undoStack.length === 0) return;
+        var action = undoStack.pop();
+        if (action.type === 'addPin') {
+            var step = demoData.steps[action.stepIndex];
+            if (step && step.pins) {
+                step.pins.splice(action.pinIndex, 1);
+                if (selectedPin === action.pinIndex) {
+                    selectedPin = null;
+                } else if (selectedPin !== null && selectedPin > action.pinIndex) {
+                    selectedPin--;
+                }
+                renderPins();
+                renderAreas();
+                updatePinEditor(selectedPin);
+                saveDemo();
+                showToast('Undo: pin removed', 'info');
+            }
+        }
+    }
+
+    window.addEventListener('resize', function() {
+        const img = document.getElementById('stepImage');
+        if (img.style.display !== 'none') syncPinsContainer();
+    });
+
     document.getElementById('editorCanvas').addEventListener('click', function(e) {
         if (isDragging) return;
+        if (areaDragMoved) { areaDragMoved = false; return; }
         if (e.target.closest('.pin-marker') || e.target.closest('.area-box')) return;
         if (currentMode !== 'pin') {
             selectedArea = null;
@@ -649,21 +918,26 @@ $steps = $data['steps'] ?? [];
         const step = steps[currentStep];
         if (!step || !step.image) return;
 
-        const rect = this.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        const img = document.getElementById('stepImage');
+        const imgRect = img.getBoundingClientRect();
+        if (e.clientX < imgRect.left || e.clientX > imgRect.right || e.clientY < imgRect.top || e.clientY > imgRect.bottom) return;
+
+        const x = ((e.clientX - imgRect.left) / imgRect.width) * 100;
+        const y = ((e.clientY - imgRect.top) / imgRect.height) * 100;
 
         if (!step.pins) step.pins = [];
 
         const newPin = {
-            x: Math.max(0, Math.min(100, x)),
-            y: Math.max(0, Math.min(100, y)),
+            x: Math.round(x * 100) / 100,
+            y: Math.round(y * 100) / 100,
             title: 'Step ' + (step.pins.length + 1),
             text: 'Click here',
-            action: 'next'
+            action: 'next',
+            areas: []
         };
 
         step.pins.push(newPin);
+        undoStack.push({type: 'addPin', stepIndex: currentStep, pinIndex: step.pins.length - 1});
         renderPins();
         selectPin(step.pins.length - 1);
         saveDemo();
@@ -707,21 +981,29 @@ $steps = $data['steps'] ?? [];
         showToast('Step deleted', 'success');
     }
 
+    function countAreas(step) {
+        var n = 0;
+        (step.pins || []).forEach(function(p) { if (p.areas && p.areas.length > 0) n++; });
+        return n;
+    }
+
     function renderStepsList() {
         const list = document.getElementById('stepsList');
         const steps = demoData.steps || [];
-        list.innerHTML = steps.map((step, i) => `
-            <div class="step-item ${i === currentStep ? 'active' : ''}" data-index="${i}" onclick="selectStep(${i})">
-                <div class="step-thumb">
-                    ${step.image ? `<img src="${escapeHtml(step.image)}" alt="">` : '<span class="step-no-image">+</span>'}
-                </div>
-                <div class="step-info">
-                    <span class="step-label">Step ${i + 1}</span>
-                    <span class="step-pins">${(step.pins || []).length} pins${(step.areas || []).length > 0 ? ', ' + step.areas.length + ' areas' : ''}</span>
-                </div>
-                <button class="step-delete" onclick="event.stopPropagation();deleteStep(${i})" title="Delete step">×</button>
-            </div>
-        `).join('');
+        list.innerHTML = steps.map((step, i) => {
+            var ac = countAreas(step);
+            var extra = (step.pins || []).length + ' pins' + (ac > 0 ? ', ' + ac + ' areas' : '');
+            return '<div class="step-item ' + (i === currentStep ? 'active' : '') + '" data-index="' + i + '" onclick="selectStep(' + i + ')">' +
+                '<div class="step-thumb">' +
+                (step.image ? '<img src="' + escapeHtml(step.image) + '" alt="">' : '<span class="step-no-image">+</span>') +
+                '</div>' +
+                '<div class="step-info">' +
+                '<span class="step-label">Step ' + (i + 1) + '</span>' +
+                '<span class="step-pins">' + extra + '</span>' +
+                '</div>' +
+                '<button class="step-delete" onclick="event.stopPropagation();deleteStep(' + i + ')" title="Delete step">×</button>' +
+                '</div>';
+        }).join('');
     }
 
     function uploadForStep() {
